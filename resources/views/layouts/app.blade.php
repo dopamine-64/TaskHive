@@ -8,12 +8,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        /* Global Background & Body */
+        
         body {
             margin: 0;
             padding: 0;
-            min-height: 100vh; /* Changed from height: 100vh to allow scrolling on longer pages */
-            background: linear-gradient(rgba(10, 30, 20, 0.3), rgba(10, 30, 20, 0.4)), url('images/bg-1.png') no-repeat center center;
+            min-height: 100vh; 
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('images/bg-1.png') no-repeat center center;
             background-size: cover;
             background-attachment: fixed;
             font-family: 'Inter', sans-serif;
@@ -22,7 +22,6 @@
             flex-direction: column;
         }
 
-        /* Top Navigation */
         .custom-navbar {
             padding: 2rem 6rem;
             display: grid;
@@ -46,7 +45,6 @@
             color: #feb83e;
         }
 
-        /* Pill-shaped transparent menu */
         .nav-pill-menu {
             justify-self: center;
             background: rgba(0, 0, 0, 0.3);
@@ -73,7 +71,7 @@
         }
 
         .custom-navbar .d-flex.align-items-center {
-            justify-self: end; /* Sticks to the right */
+            justify-self: end; 
         }
 
         .btn-white {
@@ -87,14 +85,12 @@
             text-decoration: none;
         }
 
-        /* Main Content Wrapper */
         .main-content {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
         }
 
-        /* ---- DASHBOARD SPECIFIC STYLES ---- */
         .hero-section {
             flex-grow: 1;
             display: flex;
@@ -203,6 +199,7 @@
             text-transform: capitalize;
         }
     </style>
+    @yield('styles')
 </head>
 <body>
 

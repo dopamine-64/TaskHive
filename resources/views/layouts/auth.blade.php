@@ -54,7 +54,6 @@
         .form-control { background-color: #eee; border: none; padding: 12px 15px; margin: 8px 0; border-radius: 8px; }
         .form-control:focus { background-color: #e2e2e2; box-shadow: none; }
 
-        /* Full Page Container */
         .auth-container {
             background-color: #fff;
             border-radius: 0;
@@ -71,7 +70,6 @@
             transition: all 0.6s ease-in-out;
         }
 
-        /* Sign In Side */
         .sign-in-container {
             left: 0;
             width: 50%;
@@ -81,7 +79,6 @@
             transform: translateX(100%);
         }
 
-        /* Sign Up Side */
         .sign-up-container {
             left: 0;
             width: 50%;
@@ -100,7 +97,6 @@
             50%, 100% { opacity: 1; z-index: 5; }
         }
 
-        /* The Overlay that slides */
         .overlay-container {
             position: absolute;
             top: 0;
@@ -153,7 +149,6 @@
         .role-selector { display: flex; gap: 10px; width: 100%; margin: 10px 0; }
         .role-selector .form-check { background: #eee; padding: 10px; border-radius: 8px; flex: 1; text-align: center; cursor: pointer;}
         
-        /* Mobile fallback */
         @media (max-width: 768px) {
             .auth-container { display: flex; flex-direction: column; overflow-y: auto; }
             .form-container, .overlay-container { position: static; width: 100%; height: auto; }
