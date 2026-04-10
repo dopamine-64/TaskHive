@@ -209,7 +209,11 @@
         <div class="nav-pill-menu">
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Home</a>
             <a href="{{ route('services.index') }}" class="{{ request()->routeIs('services.index') ? 'active' : '' }}">Categories</a>
-            <a href="#">Providers</a>
+            @auth
+                <a href="{{ route('provider.show', auth()->user()->id) }}" class="{{ request()->routeIs('provider.show') ? 'active' : '' }}">Providers</a>
+            @else
+                <a href="{{ route('login') }}">Providers</a>
+            @endauth
             <a href="#">About</a>
             @if(auth()->check() && auth()->user()->role === 'provider')
                 <a href="{{ route('services.create') }}" class="text-warning {{ request()->routeIs('services.create') ? 'active' : '' }}">Post Service</a>
