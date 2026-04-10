@@ -11,15 +11,28 @@ class Service extends Model
 
     protected $fillable = [
         'user_id',
+        'provider_profile_id',
         'title',
         'description',
         'category',
         'subcategory',
-        'price'
+        'price',
+        'duration',
+        'category_id',
+        'is_active'
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function provider()
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function providerProfile()
+    {
+        return $this->belongsTo(ProviderProfile::class);
     }
 }
