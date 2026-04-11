@@ -23,7 +23,8 @@ class ServiceController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'description' => 'required|string'
+            'description' => 'required|string',
+            'location' => 'required|string|max:255'
         ]);
         
         Service::create([
@@ -38,7 +39,18 @@ class ServiceController extends Controller
 
         return redirect()->route('services.index')->with('success', 'Service posted successfully!');
     }
-
+    /**
+ * Display all available services for Categories page
+ * This shows ALL services without any search filters
+ */
+    public function categories()
+    {
+        // Get all services, newest first, 12 per page
+        $services = Service::latest()->paginate(12);
+        
+        // Return the categories view
+        return view('services.categories', compact('services'));
+    }
     // View - Search and filter services
     public function index(Request $request)
     {
