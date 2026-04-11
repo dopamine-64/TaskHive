@@ -1,61 +1,196 @@
-@extends('layouts.app')
-@section('title', 'Browse Services')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskHive | Search Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
-@section('styles')
-<style>
-    body {
-        /* Adds the dark overlay and background image */
-        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), 
-                    url('/images/bg-1.png') no-repeat center center !important;
-        background-size: cover !important;
-        background-attachment: fixed !important;
-    }
-</style>
-@endsection
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), 
+                        url('/images/bg-1.png') no-repeat center center;
+            background-size: cover;
+            background-attachment: fixed;
+            min-height: 100vh;
+            margin: 0;
+            padding-bottom: 50px;
+        }
+        
+        .hero-section {
+            text-align: center;
+            padding: 60px 0 40px;
+            color: white;
+        }
+        
+        .hero-title {
+            font-size: 48px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+        
+        .hero-title em {
+            font-style: italic;
+            color: #ffd700;
+        }
+        
+        .hero-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .results-pill {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            padding: 10px 30px;
+            display: inline-block;
+            margin-bottom: 40px;
+            font-weight: 600;
+            color: white;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .service-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            transition: 0.3s;
+            text-align: left;
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        .service-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        .service-card h5 {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .service-card .text-muted {
+            color: rgba(255,255,255,0.7) !important;
+        }
+        
+        .price {
+            font-size: 28px;
+            font-weight: 700;
+            color: #ffd700;
+            margin: 15px 0;
+        }
+        
+        .badge-category {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            color: white;
+        }
+        
+        .empty-state i {
+            font-size: 60px;
+            margin-bottom: 20px;
+            color: #ffd700;
+        }
+        
+        .empty-state h4 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+        
+        .back-link {
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .back-link a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+        }
+        
+        .back-link a:hover {
+            opacity: 1;
+        }
+        
+        .pagination {
+            justify-content: center;
+        }
+        
+        .page-link {
+            background: rgba(255,255,255,0.15);
+            border: none;
+            color: white;
+            margin: 0 5px;
+            border-radius: 10px;
+        }
+        
+        .page-item.active .page-link {
+            background: #ffd700;
+            color: #000;
+        }
+    </style>
+</head>
+<body>
 
-@section('content')
-<div class="container py-5" style="z-index: 10;">
-    <h2 class="text-white mb-4" style="font-family: 'Playfair Display', serif;">Available Services</h2>
-    
-    {{-- Added an ID to the alert so JavaScript can find it --}}
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show shadow" id="success-alert" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-    @endif
-
-    <div class="row g-4">
-        @foreach($services as $service)
-            <div class="col-md-3">
-                <div class="card h-100 shadow" style="background: rgba(255,255,255,0.95); border: none; border-radius: 12px;">
-                    <div class="card-body text-dark">
-                        <span class="badge mb-2" style="background-color: #005c4b;">{{ $service->category }}</span>
-                        <h5 class="card-title fw-bold">{{ $service->title }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">By {{ $service->provider->name }}</h6>
-                        <p class="card-text small text-truncate">{{ $service->description }}</p>
-                        
-                        {{-- Used number_format to remove decimals and add commas to large numbers --}}
-                        <h4 class="mt-3 text-success">৳{{ number_format($service->price, 0) }} Tk</h4>
-                    </div>
-                    <div class="card-footer bg-transparent border-0 pb-3">
-                        <button class="btn btn-outline-dark w-100" style="border-radius: 20px;">Buy</button>
-                    </div>
-                </div>
-            </div>
-        @endforeach
+<div class="hero-section">
+    <div class="container">
+        <h1 class="hero-title">Search Results</h1>
+        <p class="hero-subtitle">Showing services that match your criteria</p>
     </div>
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const alertBox = document.getElementById('success-alert');
-        if (alertBox) {
-            setTimeout(() => {
-                const alert = new bootstrap.Alert(alertBox);
-                alert.close();
-            }, 2000);
-        }
-    });
-</script>
-@endsection
+<div class="container text-center">
+    <div class="results-pill">
+        <i class="fas fa-chart-line"></i> {{ $services->count() }} Services Found
+    </div>
+
+    <div class="row g-4">
+        @forelse($services as $service)
+        <div class="col-md-4">
+            <div class="service-card">
+                <h5>{{ $service->title }}</h5>
+                <p class="text-muted small">{{ Str::limit($service->description, 80) }}</p>
+                <div class="price">${{ number_format($service->price) }}</div>
+                <span class="badge-category">{{ $service->category }}</span>
+            </div>
+        </div>
+        @empty
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="fas fa-search"></i>
+                <h4>No services found</h4>
+                <p>Try different filters or go back to dashboard</p>
+                <a href="{{ url('/dashboard') }}" style="background: #ffd700; color: #000; padding: 10px 30px; border-radius: 50px; text-decoration: none; display: inline-block; margin-top: 20px;">Back to Dashboard</a>
+            </div>
+        </div>
+        @endforelse
+    </div>
+
+    <div class="d-flex justify-content-center mt-4">
+        {{ $services->links() }}
+    </div>
+
+    <div class="back-link">
+        <a href="{{ url('/dashboard') }}">← Back to Dashboard</a>
+    </div>
+</div>
+
+</body>
+</html>

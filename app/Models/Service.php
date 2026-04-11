@@ -15,7 +15,9 @@ class Service extends Model
         'description',
         'category',
         'subcategory',
-        'price'
+        'price',
+        'location',
+        'rating'
     ];
 
     public function provider()
