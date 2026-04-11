@@ -208,13 +208,19 @@
         
         <div class="nav-pill-menu">
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Home</a>
-            <a href="{{ route('services.index') }}" class="{{ request()->routeIs('services.index') ? 'active' : '' }}">Categories</a>
+            
+            <!-- Categories link - NOW CONNECTED to categories page (shows ALL services) -->
+            <a href="{{ route('services.categories') }}" class="{{ request()->routeIs('services.categories') ? 'active' : '' }}">Categories</a>
+            
+            <!-- Profile link - shows provider profile if logged in -->
             @auth
                 <a href="{{ route('provider.show', auth()->user()->id) }}" class="{{ request()->routeIs('provider.show') ? 'active' : '' }}">Profile</a>
             @else
                 <a href="{{ route('login') }}">Profile</a>
             @endauth
+            
             <a href="#">About</a>
+            
             @if(auth()->check() && auth()->user()->role === 'provider')
                 <a href="{{ route('services.create') }}" class="text-warning {{ request()->routeIs('services.create') ? 'active' : '' }}">Post Service</a>
             @endif
