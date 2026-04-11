@@ -50,7 +50,7 @@
 
     .stat {
         text-align: center;
-        background-color: rgba(0, 92, 75, 0.05);
+        background-color: rgba(0, 92, 75, 0.33);
         border: 1px solid rgba(0, 92, 75, 0.2);
         border-radius: 12px;
         padding: 1.5rem;
@@ -59,12 +59,12 @@
     .stat-value {
         font-size: 2rem;
         font-weight: 700;
-        color: #005c4b;
+        color: #e8efee;
     }
 
     .stat-label {
         font-size: 0.9rem;
-        color: #3b5249;
+        color: #e8efee;
         margin-top: 0.5rem;
         font-weight: 500;
     }
@@ -315,10 +315,10 @@
             <div class="profile-section">
                 <h3 class="section-title">Pricing</h3>
                 @if($profile->hourly_rate)
-                    <p style="color: #2c3e38;"><strong>Hourly Rate:</strong> ${{ $profile->hourly_rate }}/hr</p>
+                    <p style="color: #2c3e38;"><strong>Hourly Rate:</strong> ৳{{ $profile->hourly_rate }}/hr</p>
                 @endif
                 @if($profile->fixed_rate)
-                    <p style="color: #2c3e38;"><strong>Fixed Rate:</strong> ${{ $profile->fixed_rate }}</p>
+                    <p style="color: #2c3e38;"><strong>Fixed Rate:</strong> ৳{{ $profile->fixed_rate }}</p>
                 @endif
             </div>
         @endif

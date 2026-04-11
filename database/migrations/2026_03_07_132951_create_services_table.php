@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('category');
             $table->string('subcategory')->nullable();
             $table->decimal('price',8,2);
+            $table->string('location');
             $table->timestamps();
         });
     }

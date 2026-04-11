@@ -266,13 +266,13 @@
                 
                 <div class="row">
                     <div class="col-md-6 form-group mb-3">
-                        <label for="hourly_rate" class="form-label">Hourly Rate ($)</label>
+                        <label for="hourly_rate" class="form-label">Hourly Rate (৳)</label>
                         <input 
                             type="number" 
                             name="hourly_rate" 
                             id="hourly_rate" 
                             class="form-control @error('hourly_rate') is-invalid @enderror"
-                            step="0.01"
+                            step="1"
                             min="0"
                             value="{{ old('hourly_rate', $profile->hourly_rate) }}"
                             placeholder="e.g., 50.00"
@@ -283,13 +283,13 @@
                     </div>
 
                     <div class="col-md-6 form-group mb-3">
-                        <label for="fixed_rate" class="form-label">Fixed Rate ($)</label>
+                        <label for="fixed_rate" class="form-label">Fixed Rate (৳)</label>
                         <input 
                             type="number" 
                             name="fixed_rate" 
                             id="fixed_rate" 
                             class="form-control @error('fixed_rate') is-invalid @enderror"
-                            step="0.01"
+                            step="1"
                             min="0"
                             value="{{ old('fixed_rate', $profile->fixed_rate) }}"
                             placeholder="e.g., 500.00"

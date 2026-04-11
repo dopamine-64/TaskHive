@@ -23,7 +23,8 @@ class ServiceController extends Controller
             'title' => 'required|string|max:255',
             'category' => 'required|string',
             'price' => 'required|numeric|min:0',
-            'description' => 'required|string'
+            'description' => 'required|string',
+            'location' => 'required|string|max:255'
         ]);
         
         Service::create([
@@ -32,7 +33,8 @@ class ServiceController extends Controller
             'description' => $request->description,
             'category' => $request->category,
             'subcategory' => $request->subcategory,
-            'price' => $request->price
+            'price' => $request->price,
+            'location' => $request->location,
         ]);
 
         return redirect()->route('services.index')->with('success', 'Service posted successfully!');
