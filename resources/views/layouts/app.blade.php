@@ -209,17 +209,15 @@
         <div class="nav-pill-menu">
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Home</a>
             
-            <!-- Categories link - NOW CONNECTED to categories page (shows ALL services) -->
             <a href="{{ route('services.categories') }}" class="{{ request()->routeIs('services.categories') ? 'active' : '' }}">Categories</a>
             
-            <!-- Profile link - shows provider profile if logged in -->
             @auth
                 <a href="{{ route('provider.show', auth()->user()->id) }}" class="{{ request()->routeIs('provider.show') ? 'active' : '' }}">Profile</a>
             @else
                 <a href="{{ route('login') }}">Profile</a>
             @endauth
             
-            <a href="#">About</a>
+            <a href="#" onclick="event.preventDefault(); findProvidersNearMe();">Providers</a>
             
             @if(auth()->check() && auth()->user()->role === 'provider')
                 <a href="{{ route('services.create') }}" class="text-warning {{ request()->routeIs('services.create') ? 'active' : '' }}">Post Service</a>
@@ -241,6 +239,30 @@
         @yield('content')
     </main>
 
+    <form id="locationSearchForm" action="{{ route('providers.search') }}" method="GET" style="display: none;">
+        <input type="hidden" name="lat" id="customer_lat">
+        <input type="hidden" name="lng" id="customer_lng">
+    </form>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+    function findProvidersNearMe() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+                // Set the hidden inputs with user's location
+                document.getElementById('customer_lat').value = position.coords.latitude;
+                document.getElementById('customer_lng').value = position.coords.longitude;
+                
+                // Submit the form
+                document.getElementById('locationSearchForm').submit();
+            }, function(error) {
+                alert('We need your location to find providers near you. Please enable location services in your browser settings.');
+            });
+        } else {
+            alert("Your browser does not support geolocation.");
+        }
+    }
+    </script>
 </body>
 </html>
