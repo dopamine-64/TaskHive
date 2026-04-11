@@ -83,6 +83,11 @@
                             <label class="form-label elegant-label">Service Title</label>
                             <input type="text" name="title" class="form-control elegant-input" required placeholder="e.g. Professional Plumbing Services">
                         </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label modern-label">Location</label>
+                            <input type="text" name="location" class="form-control modern-input" required placeholder="e.g. Dhaka, Bangladesh">
+                        </div>
 
                         <div class="row mb-4">
                             <div class="col-md-6">

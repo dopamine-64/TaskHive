@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\ProviderProfile;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -24,7 +25,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
-            return redirect()->intended('dashboard');
+            return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
@@ -47,6 +48,11 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
             'role' => $request->role,
         ]);
+
+        // Create a provider profile if registering as a provider
+        if ($request->role === 'provider') {
+            ProviderProfile::create(['user_id' => $user->id]);
+        }
 
         Auth::login($user);
 
