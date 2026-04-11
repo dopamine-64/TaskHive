@@ -28,8 +28,11 @@ Route::middleware('auth')->group(function () {
     // The Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-    // View all services
+    // View all services (Search Results page)
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+
+    // Categories page - shows ALL available services (no search filters)
+    Route::get('/categories', [ServiceController::class, 'categories'])->name('services.categories');
 
     // Show the form to create a new service
     Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');

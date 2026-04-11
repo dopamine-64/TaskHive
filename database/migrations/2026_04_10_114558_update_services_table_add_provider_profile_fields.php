@@ -21,14 +21,6 @@ return new class extends Migration
             if (!Schema::hasColumn('services', 'duration')) {
                 $table->integer('duration')->nullable()->comment('Duration in minutes');
             }
-            if (!Schema::hasColumn('services', 'category_id')) {
-                $table->unsignedInteger('category_id')->nullable();
-                
-                $table->foreign('category_id')
-                      ->references('id')
-                      ->on('categories')
-                      ->onDelete('set null');
-            }
             if (!Schema::hasColumn('services', 'is_active')) {
                 $table->boolean('is_active')->default(true);
             }

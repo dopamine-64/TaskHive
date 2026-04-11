@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TaskHive | Search Results</title>
+    <title>TaskHive | Available Services</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -30,16 +30,6 @@
             font-size: 48px;
             font-weight: 700;
             margin-bottom: 15px;
-        }
-        
-        .hero-title em {
-            font-style: italic;
-            color: #ffd700;
-        }
-        
-        .hero-subtitle {
-            font-size: 18px;
-            opacity: 0.9;
         }
         
         .results-pill {
@@ -75,10 +65,6 @@
             margin-bottom: 10px;
         }
         
-        .service-card .text-muted {
-            color: rgba(255,255,255,0.7) !important;
-        }
-        
         .price {
             font-size: 28px;
             font-weight: 700;
@@ -103,17 +89,6 @@
             color: white;
         }
         
-        .empty-state i {
-            font-size: 60px;
-            margin-bottom: 20px;
-            color: #ffd700;
-        }
-        
-        .empty-state h4 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        
         .back-link {
             margin-top: 40px;
             text-align: center;
@@ -123,10 +98,6 @@
             color: white;
             text-decoration: none;
             opacity: 0.8;
-        }
-        
-        .back-link a:hover {
-            opacity: 1;
         }
         
         .pagination {
@@ -151,14 +122,14 @@
 
 <div class="hero-section">
     <div class="container">
-        <h1 class="hero-title">Search Results</h1>
-        <p class="hero-subtitle">Showing services that match your criteria</p>
+        <h1 class="hero-title"><i class="fas fa-list"></i> Available Services</h1>
+        <p>Browse all services from our trusted providers</p>
     </div>
 </div>
 
 <div class="container text-center">
     <div class="results-pill">
-        <i class="fas fa-chart-line"></i> {{ $services->count() }} Services Found
+        <i class="fas fa-chart-line"></i> {{ $services->count() }} Services Available
     </div>
 
     <div class="row g-4">
@@ -166,7 +137,7 @@
         <div class="col-md-4">
             <div class="service-card">
                 <h5>{{ $service->title }}</h5>
-                <p class="text-muted small">{{ Str::limit($service->description, 80) }}</p>
+                <p class="text-white-50 small">{{ Str::limit($service->description, 80) }}</p>
                 <div class="price">${{ number_format($service->price) }}</div>
                 <span class="badge-category">{{ $service->category }}</span>
             </div>
@@ -175,8 +146,8 @@
         <div class="col-12">
             <div class="empty-state">
                 <i class="fas fa-search"></i>
-                <h4>No services found</h4>
-                <p>Try different filters or go back to dashboard</p>
+                <h4>No services available</h4>
+                <p>Please check back later</p>
                 <a href="{{ url('/dashboard') }}" style="background: #ffd700; color: #000; padding: 10px 30px; border-radius: 50px; text-decoration: none; display: inline-block; margin-top: 20px;">Back to Dashboard</a>
             </div>
         </div>
