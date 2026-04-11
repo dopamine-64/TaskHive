@@ -208,7 +208,8 @@
         
         <div class="nav-pill-menu">
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Home</a>
-            <a href="{{ route('services.index') }}" class="{{ request()->routeIs('services.index') ? 'active' : '' }}">Categories</a>
+            <!-- <a href="{{ route('services.index') }}" class="{{ request()->routeIs('services.index') ? 'active' : '' }}">Categories</a> -->
+            <a href="#">Categories</a>
             <a href="#">Providers</a>
             <a href="#">About</a>
             @if(auth()->check() && auth()->user()->role === 'provider')
