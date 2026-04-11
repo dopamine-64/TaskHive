@@ -184,11 +184,11 @@
                 <strong style="color: rgba(255, 255, 255, 0.9);">Pricing:</strong>
                 <p style="color: rgba(255, 255, 255, 0.8);">
                     @if($profile->hourly_rate)
-                        Hourly: ${{ $profile->hourly_rate }}/hr
+                        Hourly: ৳{{ $profile->hourly_rate }}/hr
                     @endif
                     @if($profile->hourly_rate && $profile->fixed_rate) | @endif
                     @if($profile->fixed_rate)
-                        Fixed: ${{ $profile->fixed_rate }}
+                        Fixed: ৳{{ $profile->fixed_rate }}
                     @endif
                 </p>
             </div>

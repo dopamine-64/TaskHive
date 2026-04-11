@@ -17,7 +17,6 @@
 <div class="container py-5" style="z-index: 10;">
     <h2 class="text-white mb-4" style="font-family: 'Playfair Display', serif;">Available Services</h2>
     
-    {{-- Added an ID to the alert so JavaScript can find it --}}
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show shadow" id="success-alert" role="alert">
             {{ session('success') }}
@@ -32,14 +31,19 @@
                     <div class="card-body text-dark">
                         <span class="badge mb-2" style="background-color: #005c4b;">{{ $service->category }}</span>
                         <h5 class="card-title fw-bold">{{ $service->title }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">By {{ $service->provider->name }}</h6>
+                        <h6 class="card-subtitle mb-1 text-muted">By {{ $service->provider->name }}</h6>
+                        
+                        {{-- Location display added here --}}
+                        <div class="mb-2 text-secondary small" style="font-weight: 500;">
+                            📍 {{ $service->location }}
+                        </div>
+
                         <p class="card-text small text-truncate">{{ $service->description }}</p>
                         
-                        {{-- Used number_format to remove decimals and add commas to large numbers --}}
-                        <h4 class="mt-3 text-success">৳{{ number_format($service->price, 0) }} Tk</h4>
+                        <h4 class="mt-3 text-success" style="color: #005c4b !important;">৳{{ number_format($service->price, 0) }} Tk</h4>
                     </div>
                     <div class="card-footer bg-transparent border-0 pb-3">
-                        <button class="btn btn-outline-dark w-100" style="border-radius: 20px;">Buy</button>
+                        <button class="btn w-100 text-white" style="background-color: #005c4b; border-radius: 20px;">Buy</button>
                     </div>
                 </div>
             </div>

@@ -210,9 +210,9 @@
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Home</a>
             <a href="{{ route('services.index') }}" class="{{ request()->routeIs('services.index') ? 'active' : '' }}">Categories</a>
             @auth
-                <a href="{{ route('provider.show', auth()->user()->id) }}" class="{{ request()->routeIs('provider.show') ? 'active' : '' }}">Providers</a>
+                <a href="{{ route('provider.show', auth()->user()->id) }}" class="{{ request()->routeIs('provider.show') ? 'active' : '' }}">Profile</a>
             @else
-                <a href="{{ route('login') }}">Providers</a>
+                <a href="{{ route('login') }}">Profile</a>
             @endauth
             <a href="#">About</a>
             @if(auth()->check() && auth()->user()->role === 'provider')

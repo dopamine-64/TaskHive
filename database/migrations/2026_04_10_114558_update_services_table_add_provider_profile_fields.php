@@ -22,7 +22,12 @@ return new class extends Migration
                 $table->integer('duration')->nullable()->comment('Duration in minutes');
             }
             if (!Schema::hasColumn('services', 'category_id')) {
-                $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
+                $table->unsignedInteger('category_id')->nullable();
+                
+                $table->foreign('category_id')
+                      ->references('id')
+                      ->on('categories')
+                      ->onDelete('set null');
             }
             if (!Schema::hasColumn('services', 'is_active')) {
                 $table->boolean('is_active')->default(true);
@@ -44,10 +49,6 @@ return new class extends Migration
             }
             if (Schema::hasColumn('services', 'duration')) {
                 $table->dropColumn('duration');
-            }
-            if (Schema::hasColumn('services', 'category_id')) {
-                $table->dropForeignIfExists('services_category_id_foreign');
-                $table->dropColumn('category_id');
             }
             if (Schema::hasColumn('services', 'is_active')) {
                 $table->dropColumn('is_active');
