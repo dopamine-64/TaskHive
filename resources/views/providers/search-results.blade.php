@@ -1,13 +1,28 @@
 @extends('layouts.app')
 
+@section('styles')
+<style>
+    body {
+        font-family: 'Poppins', sans-serif !important;
+        background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), 
+                    url('/images/bg-1.png') no-repeat center center !important;
+        background-size: cover !important;
+        background-attachment: fixed !important;
+        min-height: 100vh;
+        margin: 0;
+        padding-bottom: 50px;
+    }
+</style>
+@endsection
+
 @section('content')
-<div class="container py-5">
+<div class="container py-5" style="z-index: 10; position: relative;">
     
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Providers in Your Area</h2>
-        <button onclick="findProvidersNearMe()" id="searchBtn" class="btn btn-warning fw-bold text-dark">
-            <span id="btnText">Update My Location</span>
-            <div id="btnSpinner" class="spinner-border spinner-border-sm text-dark d-none" role="status"></div>
+        <h2 class="text-white mb-0" style="font-weight: 600;">Providers in Your Area</h2>
+        <button onclick="findProvidersNearMe()" id="searchBtn" class="btn shadow-sm px-4 py-2" style="background-color: #f8f9fa; color: #005c4b; border-radius: 30px; font-weight: 600;">
+            <i class="fas fa-location-arrow me-2"></i><span id="btnText">Update My Location</span>
+            <div id="btnSpinner" class="spinner-border spinner-border-sm text-success d-none ms-2" role="status"></div>
         </button>
     </div>
 
@@ -16,43 +31,50 @@
         <input type="hidden" name="lng" id="customer_lng">
     </form>
 
-    <div id="locationError" class="alert alert-danger d-none"></div>
+    <div id="locationError" class="alert alert-danger shadow-sm d-none" style="border-radius: 12px;"></div>
 
-    <hr>
+    <hr style="border-color: rgba(255,255,255,0.2);">
 
     @if(!$customerLat || !$customerLng)
-        <div class="alert alert-info text-center">
-            <strong>We need your location!</strong> Please click the button above and allow location access to see providers near you.
+        <div class="alert shadow-sm text-center" style="background-color: rgba(255,255,255,0.95); border-radius: 12px; color: #3b5249;">
+            <strong>📍 We need your location!</strong> Please click the button above and allow location access to see providers near you.
         </div>
     @elseif($providers->isEmpty())
-        <div class="alert alert-warning text-center">
+        <div class="alert shadow-sm text-center" style="background-color: rgba(255,255,255,0.95); border-radius: 12px; color: #856404; border-left: 5px solid #ffc107;">
             We couldn't find any providers whose service radius covers your exact location. Try checking back later!
         </div>
     @else
-        <div class="row">
+        <div class="row g-4 mt-2">
             @foreach($providers as $provider)
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100 shadow-sm bg-dark text-white border-secondary">
-                        <div class="card-body">
-                            <h5 class="card-title text-warning">
+                <div class="col-md-4">
+                    <div class="card h-100 shadow-lg d-flex flex-column" style="background: rgba(255,255,255,0.95); border: none; border-radius: 16px;">
+                        <div class="card-body text-dark p-4 flex-grow-1">
+                            <h5 class="card-title fw-bold mb-3" style="color: #005c4b;">
                                 {{ $provider->user->name ?? 'Unknown Provider' }}
                                 @if($provider->is_verified)
-                                    <span class="badge bg-success ms-2 fs-6">✓ Verified</span>
+                                    <span class="badge shadow-sm ms-1" style="background-color: #005c4b; font-size: 0.75rem; vertical-align: middle;">✓ Verified</span>
                                 @endif
                             </h5>
                             
                             <div class="mb-3">
-                                <span class="badge bg-secondary">⭐ {{ $provider->average_rating }} ({{ $provider->total_ratings }})</span>
-                                <span class="badge bg-info text-dark">{{ number_format($provider->distance, 1) }} km away</span>
+                                <span class="badge me-1" style="background-color: #3b5249; font-weight: 500;">⭐ {{ $provider->average_rating }} ({{ $provider->total_ratings }})</span>
+                                <span class="badge" style="background-color: #e1e8e5; color: #005c4b; font-weight: 600;">📍 {{ number_format($provider->distance, 1) }} km away</span>
                             </div>
 
-                            <p class="card-text mb-1"><strong>Service Area:</strong> {{ $provider->service_area ?? 'N/A' }}</p>
-                            <p class="card-text mb-1"><strong>Rate:</strong> {{ $provider->hourly_rate ?? $provider->fixed_rate ?? 'Negotiable' }}</p>
-                            <p class="card-text text-muted small mt-3 border-top border-secondary pt-2">
-                                Provider's Max Radius: {{ $provider->service_radius_km }} km
+                            <p class="card-text mb-2" style="font-size: 0.95rem; color: #4a5568;">
+                                <strong>Service Area:</strong> {{ $provider->service_area ?? 'N/A' }}
+                            </p>
+                            <p class="card-text mb-3" style="font-size: 0.95rem; color: #4a5568;">
+                                <strong>Rate:</strong> ৳{{ $provider->hourly_rate ?? $provider->fixed_rate ?? 'Negotiable' }}
                             </p>
                             
-                            <a href="{{ route('provider.show', $provider->user_id) }}" class="btn btn-outline-light w-100 mt-2">
+                            <p class="card-text text-muted small mt-4 border-top pt-3" style="border-color: #cdd6d2 !important;">
+                                Provider's Max Radius: {{ $provider->service_radius_km }} km
+                            </p>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent border-0 pb-4 px-4 pt-0 mt-auto">
+                            <a href="{{ route('provider.show', $provider->user_id) }}" class="btn w-100 text-white shadow-sm" style="background-color: #005c4b; border-radius: 20px; font-weight: 500; transition: all 0.3s ease;">
                                 View Profile
                             </a>
                         </div>

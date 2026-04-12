@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute; // <- Added this import
 
 class ProviderProfile extends Model
 {
@@ -17,8 +18,8 @@ class ProviderProfile extends Model
         'hourly_rate',
         'fixed_rate',
         'service_area',
-        'latitude',           // <- Added for location search
-        'longitude',          // <- Added for location search
+        'latitude',           
+        'longitude',          
         'service_radius_km',
         'average_rating',
         'total_ratings',
@@ -27,7 +28,7 @@ class ProviderProfile extends Model
     ];
 
     protected $casts = [
-        'skills' => 'array',
+        // 'skills' => 'array', <- Removed this! We are using the custom accessor below instead.
         'average_rating' => 'decimal:2',
         'is_verified' => 'boolean',
     ];
@@ -63,25 +64,51 @@ class ProviderProfile extends Model
      */
     public function scopeAvailableInArea($query, $customerLat, $customerLng)
     {
-        // 6371 is the radius of the Earth in kilometers
         $earthRadius = 6371;
 
-        // Store the mathematical formula in a string to reuse it cleanly
         $haversine = "({$earthRadius} * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))";
 
         return $query->selectRaw(
             "provider_profiles.*, {$haversine} AS distance",
-            [$customerLat, $customerLng, $customerLat] // Bindings for the SELECT
+            [$customerLat, $customerLng, $customerLat] 
         )
-        // Ensure latitude and longitude actually exist in the DB for this row to prevent math errors
         ->whereNotNull('latitude')
         ->whereNotNull('longitude')
-        // Use whereRaw instead of havingRaw to avoid strict mode SQL grouping errors
-        // COALESCE ensures if radius is NULL, it safely treats it as 0 to prevent crashes
         ->whereRaw(
             "{$haversine} <= CAST(COALESCE(service_radius_km, '0') AS DECIMAL(10,2))",
-            [$customerLat, $customerLng, $customerLat] // Bindings for the WHERE
+            [$customerLat, $customerLng, $customerLat] 
         )
         ->orderBy('distance', 'asc');
+    }
+
+    /**
+     * CUSTOM ACCESSOR: Safely handle skills whether they are stored as JSON or a comma-separated string.
+     */
+    protected function skills(): Attribute
+    {
+        return Attribute::make(
+            get: function ($value) {
+                if (empty($value)) return [];
+
+                // If it's already an array, return it
+                if (is_array($value)) return $value;
+
+                // 1. Try to decode it assuming it's valid JSON
+                $decoded = json_decode($value, true);
+                if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                    return $decoded;
+                }
+
+                // 2. If JSON fails, assume it's a comma-separated string (e.g. "Plumbing, Electrical")
+                if (is_string($value)) {
+                    // Split by commas, trim whitespace from each skill, and return as array
+                    return array_map('trim', explode(',', $value));
+                }
+
+                return [];
+            },
+            // Automatically encode as JSON when saving back to the database
+            set: fn ($value) => is_array($value) ? json_encode($value) : $value,
+        );
     }
 }
