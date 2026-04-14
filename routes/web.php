@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ProviderProfileController;
 use App\Http\Controllers\RatingController;
+use App\Http\Controllers\ProviderSearchController;
 
 // Root route redirects to the combined auth page
 Route::get('/', [AuthController::class, 'showAuth']);
@@ -28,8 +29,15 @@ Route::middleware('auth')->group(function () {
     // The Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     
-    // View all services
+    // --- NEW: Provider Location Search Route ---
+    // Finds providers near the customer based on geolocation
+    Route::get('/providers/search', [ProviderSearchController::class, 'search'])->name('providers.search');
+    
+    // View all services (Search Results page)
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
+
+    // Categories page - shows ALL available services (no search filters)
+    Route::get('/categories', [ServiceController::class, 'categories'])->name('services.categories');
 
     // Show the form to create a new service
     Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');

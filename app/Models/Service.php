@@ -17,10 +17,11 @@ class Service extends Model
         'category',
         'subcategory',
         'price',
-        'duration',
-        'category_id',
-        'is_active',
-        'location',
+        'location',        // Ayesha - for search by location
+        'rating',          // Ayesha - for search by rating
+        'duration',        // Priyo - service duration
+        'category_id',     // Priyo - category management
+        'is_active',       // Priyo - active/inactive status
     ];
 
     protected $casts = [
