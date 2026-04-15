@@ -35,7 +35,7 @@
 
     <hr style="border-color: rgba(255,255,255,0.2);">
 
-    @if(!$customerLat || !$customerLng)
+    @if(empty($customerLat) || empty($customerLng))
         <div class="alert shadow-sm text-center" style="background-color: rgba(255,255,255,0.95); border-radius: 12px; color: #3b5249;">
             <strong>📍 We need your location!</strong> Please click the button above and allow location access to see providers near you.
         </div>
@@ -57,7 +57,7 @@
                             </h5>
                             
                             <div class="mb-3">
-                                <span class="badge me-1" style="background-color: #3b5249; font-weight: 500;">⭐ {{ $provider->average_rating }} ({{ $provider->total_ratings }})</span>
+                                <span class="badge me-1" style="background-color: #3b5249; font-weight: 500;">⭐ {{ $provider->average_rating ?? '0.0' }} ({{ $provider->total_ratings ?? '0' }})</span>
                                 <span class="badge" style="background-color: #e1e8e5; color: #005c4b; font-weight: 600;">📍 {{ number_format($provider->distance, 1) }} km away</span>
                             </div>
 
@@ -69,7 +69,7 @@
                             </p>
                             
                             <p class="card-text text-muted small mt-4 border-top pt-3" style="border-color: #cdd6d2 !important;">
-                                Provider's Max Radius: {{ $provider->service_radius_km }} km
+                                Provider's Max Radius: {{ $provider->service_radius_km ?? '0' }} km
                             </p>
                         </div>
                         
@@ -129,7 +129,7 @@ function findProvidersNearMe() {
 
 // Auto-trigger if they just landed on the page and haven't searched yet
 window.onload = function() {
-    @if(!$customerLat)
+    @if(empty($customerLat))
         findProvidersNearMe();
     @endif
 };

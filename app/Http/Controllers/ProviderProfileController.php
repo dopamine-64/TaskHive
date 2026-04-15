@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\ProviderProfile;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class ProviderProfileController extends Controller
 {
@@ -18,33 +20,70 @@ class ProviderProfileController extends Controller
         $user = User::findOrFail($userId);
         $profile = ProviderProfile::where('user_id', $userId)->first();
         
-        // If profile doesn't exist and it's the logged-in user, redirect to create/edit
         if (!$profile) {
             if (auth()->id() === $user->id) {
                 return redirect()->route('profile.edit')
                     ->with('info', 'Please complete your provider profile first.');
             }
-            // If it's another user without a profile, show 404
             abort(404, 'Provider profile not found');
         }
         
         $ratings = $profile->ratings()->with('reviewer')->latest()->paginate(10);
 
-        return view('services.profile-show', compact('user', 'profile', 'ratings'));
+        // --- Provider Job Data (For the Working Progress Table) ---
+        $incomingRequests = [];
+        $activeJobs = [];
+
+        if (auth()->id() == $userId) {
+            // New requests for the provider
+            $incomingRequests = DB::table('trackings')
+                ->join('users', 'trackings.customer_id', '=', 'users.id')
+                ->where('trackings.provider_id', $userId)
+                ->where('trackings.status', 'requested')
+                ->select('trackings.*', 'users.name as customer_name')
+                ->orderBy('trackings.created_at', 'desc')
+                ->get();
+
+            // Jobs currently in progress for the provider
+            $activeJobs = DB::table('trackings')
+                ->join('users', 'trackings.customer_id', '=', 'users.id')
+                ->where('trackings.provider_id', $userId)
+                ->whereIn('trackings.status', ['accepted', 'in_progress'])
+                ->select('trackings.*', 'users.name as customer_name')
+                ->orderBy('trackings.updated_at', 'desc')
+                ->get();
+        }
+
+        return view('services.profile-show', compact('user', 'profile', 'ratings', 'incomingRequests', 'activeJobs'));
     }
 
     public function edit()
     {
         $user = auth()->user();
-        $profile = $user->providerProfile ?? new ProviderProfile();
+        $userId = $user->id;
 
-        return view('services.profile-edit', compact('profile'));
+        // Customer Notification Data
+        $activeBooking = DB::table('trackings')
+            ->where('customer_id', $userId)
+            ->whereIn('status', ['requested', 'accepted', 'in_progress'])
+            ->join('users', 'trackings.provider_id', '=', 'users.id')
+            ->select('trackings.*', 'users.name as provider_name')
+            ->orderBy('trackings.created_at', 'desc')
+            ->first();
+
+        $completedBooking = DB::table('trackings')
+            ->where('customer_id', $userId)
+            ->where('status', 'completed')
+            ->orderBy('trackings.updated_at', 'desc')
+            ->first();
+
+        $profile = $user->providerProfile ?? new ProviderProfile();
+        return view('services.profile-edit', compact('profile', 'activeBooking', 'completedBooking'));
     }
 
     public function update(Request $request)
     {
         $user = auth()->user();
-        
         $validated = $request->validate([
             'bio' => 'nullable|string|max:1000',
             'skills' => 'nullable|string',
@@ -56,28 +95,17 @@ class ProviderProfileController extends Controller
             'certifications' => 'nullable|string',
         ]);
 
-        // Decode skills JSON string to array
         if (!empty($validated['skills'])) {
             $validated['skills'] = json_decode($validated['skills'], true);
-        } else {
-            $validated['skills'] = [];
-        }
+        } else { $validated['skills'] = []; }
 
-        $profile = ProviderProfile::updateOrCreate(
-            ['user_id' => $user->id],
-            $validated
-        );
+        $profile = ProviderProfile::updateOrCreate(['user_id' => $user->id], $validated);
 
-        return redirect()->route('provider.show', $user->id)
-            ->with('success', 'Profile updated successfully.');
+        return redirect()->route('provider.show', $user->id)->with('success', 'Profile updated successfully.');
     }
 
     public function dashboard()
     {
-        $user = auth()->user();
-        $profile = $user->providerProfile;
-        $recentRatings = $profile->ratings()->latest()->limit(5)->get();
-
-        return view('services.profile-dashboard', compact('profile', 'recentRatings'));
+        return redirect()->route('provider.show', auth()->id());
     }
 }

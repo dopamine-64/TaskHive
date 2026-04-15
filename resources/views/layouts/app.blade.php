@@ -8,18 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,600&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <style>
-        
         body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh; 
-            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('images/bg-1.png') no-repeat center center;
-            background-size: cover;
-            background-attachment: fixed;
-            font-family: 'Inter', sans-serif;
-            color: white;
-            display: flex;
-            flex-direction: column;
+            margin: 0; padding: 0; min-height: 100vh; 
+            background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('/images/bg-1.png') no-repeat center center fixed;
+            background-size: cover; font-family: 'Inter', sans-serif; color: white;
+            display: flex; flex-direction: column;
         }
 
         .custom-navbar {
@@ -41,9 +34,7 @@
             text-decoration: none;
         }
 
-        .brand-logo span {
-            color: #feb83e;
-        }
+        .brand-logo span { color: #feb83e; }
 
         .nav-pill-menu {
             justify-self: center;
@@ -64,14 +55,11 @@
             padding: 0.4rem 1rem;
             border-radius: 30px;
             transition: background 0.3s;
+            cursor: pointer;
         }
 
         .nav-pill-menu a:hover, .nav-pill-menu a.active {
             background: rgba(255, 255, 255, 0.2);
-        }
-
-        .custom-navbar .d-flex.align-items-center {
-            justify-self: end; 
         }
 
         .btn-white {
@@ -85,119 +73,7 @@
             text-decoration: none;
         }
 
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .hero-section {
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 0 2rem;
-        }
-
-        .hero-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 4.5rem;
-            font-weight: 600;
-            line-height: 1.1;
-            margin-bottom: 1rem;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-        }
-
-        .hero-title em { font-style: italic; }
-
-        .hero-subtitle {
-            font-size: 1rem;
-            font-weight: 300;
-            max-width: 600px;
-            margin: 0 auto 2rem;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        .search-glass-panel {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 15px;
-            padding: 0.5rem;
-            display: flex;
-            align-items: center;
-            max-width: 800px;
-            width: 100%;
-            margin: 2rem auto 4rem;
-        }
-
-        .search-field {
-            flex: 1;
-            padding: 0.5rem 1.5rem;
-            border-right: 1px solid rgba(255, 255, 255, 0.2);
-            text-align: left;
-        }
-
-        .search-field:last-of-type { border-right: none; }
-
-        .search-field label {
-            display: block;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.7);
-            margin-bottom: 0.2rem;
-        }
-
-        .search-field input {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 0.95rem;
-            width: 100%;
-            outline: none;
-        }
-
-        .search-field input::placeholder { color: rgba(255, 255, 255, 0.5); }
-
-        .search-btn {
-            background: white;
-            color: black;
-            border: none;
-            border-radius: 10px;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            margin-left: 1rem;
-            transition: transform 0.2s;
-        }
-
-        .search-btn:hover { transform: scale(1.05); }
-
-        .stats-container {
-            display: flex;
-            justify-content: center;
-            gap: 4rem;
-            padding-bottom: 3rem;
-        }
-
-        .stat-item h3 {
-            font-size: 1.8rem;
-            font-weight: 500;
-            margin-bottom: 0.2rem;
-        }
-
-        .stat-item p {
-            font-size: 0.8rem;
-            color: rgba(255, 255, 255, 0.7);
-            margin: 0;
-            text-transform: capitalize;
-        }
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; }
     </style>
     @yield('styles')
 </head>
@@ -208,20 +84,23 @@
         
         <div class="nav-pill-menu">
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Home</a>
-            
             <a href="{{ route('services.categories') }}" class="{{ request()->routeIs('services.categories') ? 'active' : '' }}">Categories</a>
             
             @auth
-                <a href="{{ route('provider.show', auth()->user()->id) }}" class="{{ request()->routeIs('provider.show') ? 'active' : '' }}">Profile</a>
+                @if(Auth::user()->role === 'provider')
+                    {{-- PROVIDER VIEW --}}
+                    <a href="{{ route('provider.show', Auth::id()) }}" class="{{ request()->routeIs('provider.show') ? 'active' : '' }}">Profile</a>
+                    <a href="{{ route('services.create') }}" class="text-warning {{ request()->routeIs('services.create') ? 'active' : '' }}">Post Service</a>
+                @else
+                    {{-- CUSTOMER VIEW --}}
+                    <a href="{{ route('customer.profile') }}" class="{{ request()->routeIs('customer.profile') ? 'active' : '' }}">History</a>
+                    <a onclick="findProvidersNearMe()">Providers</a>
+                @endif
             @else
+                {{-- GUEST VIEW (Not logged in) --}}
                 <a href="{{ route('login') }}">Profile</a>
+                <a onclick="findProvidersNearMe()">Providers</a>
             @endauth
-            
-            <a href="#" onclick="event.preventDefault(); findProvidersNearMe();">Providers</a>
-            
-            @if(auth()->check() && auth()->user()->role === 'provider')
-                <a href="{{ route('services.create') }}" class="text-warning {{ request()->routeIs('services.create') ? 'active' : '' }}">Post Service</a>
-            @endif
         </div>
 
         <div class="d-flex align-items-center gap-3">
@@ -239,25 +118,22 @@
         @yield('content')
     </main>
 
+    {{-- HIDDEN FORM FOR GEOLOCATION --}}
     <form id="locationSearchForm" action="{{ route('providers.search') }}" method="GET" style="display: none;">
         <input type="hidden" name="lat" id="customer_lat">
         <input type="hidden" name="lng" id="customer_lng">
     </form>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
     function findProvidersNearMe() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(function(position) {
-                // Set the hidden inputs with user's location
                 document.getElementById('customer_lat').value = position.coords.latitude;
                 document.getElementById('customer_lng').value = position.coords.longitude;
-                
-                // Submit the form
                 document.getElementById('locationSearchForm').submit();
             }, function(error) {
-                alert('We need your location to find providers near you. Please enable location services in your browser settings.');
+                alert('We need your location to find providers near you.');
             });
         } else {
             alert("Your browser does not support geolocation.");
