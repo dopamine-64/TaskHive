@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute; // <- Added this import
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class ProviderProfile extends Model
 {
@@ -28,9 +28,12 @@ class ProviderProfile extends Model
     ];
 
     protected $casts = [
-        // 'skills' => 'array', <- Removed this! We are using the custom accessor below instead.
         'average_rating' => 'decimal:2',
         'is_verified' => 'boolean',
+        // NEW: Force Laravel to treat these strictly as numbers, fixing database math errors!
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
+        'service_radius_km' => 'decimal:2',
     ];
 
     public function user()
@@ -64,19 +67,25 @@ class ProviderProfile extends Model
      */
     public function scopeAvailableInArea($query, $customerLat, $customerLng)
     {
+        // 1. Convert JS inputs into strict floats so the DB doesn't fail the calculation
+        $lat = (float) $customerLat;
+        $lng = (float) $customerLng;
+
         $earthRadius = 6371;
 
-        $haversine = "({$earthRadius} * acos(cos(radians(?)) * cos(radians(latitude)) * cos(radians(longitude) - radians(?)) + sin(radians(?)) * sin(radians(latitude))))";
+        // 2. The pure Haversine formula
+        $haversine = "( {$earthRadius} * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) )";
 
         return $query->selectRaw(
             "provider_profiles.*, {$haversine} AS distance",
-            [$customerLat, $customerLng, $customerLat] 
+            [$lat, $lng, $lat] 
         )
         ->whereNotNull('latitude')
         ->whereNotNull('longitude')
+        // 3. Strict comparison. IFNULL defaults to a 50km radius if a provider hasn't set one yet.
         ->whereRaw(
-            "{$haversine} <= CAST(COALESCE(service_radius_km, '0') AS DECIMAL(10,2))",
-            [$customerLat, $customerLng, $customerLat] 
+            "{$haversine} <= IFNULL(service_radius_km, 50)",
+            [$lat, $lng, $lat] 
         )
         ->orderBy('distance', 'asc');
     }

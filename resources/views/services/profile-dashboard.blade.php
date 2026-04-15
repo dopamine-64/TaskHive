@@ -111,6 +111,51 @@
         margin-bottom: 1.5rem;
         color: #ffc857;
     }
+
+    /* NEW JOB TRACKING STYLES */
+    .job-item {
+        background: rgba(0, 0, 0, 0.2);
+        border-left: 4px solid #feb83e;
+        border-radius: 8px;
+        padding: 1.2rem;
+        margin-bottom: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+    .job-item.active-job {
+        border-left-color: #28a745;
+    }
+    .job-info h4 {
+        color: white;
+        margin-bottom: 0.3rem;
+        font-size: 1.1rem;
+    }
+    .job-info p {
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 0;
+        font-size: 0.9rem;
+    }
+    .job-actions {
+        display: flex;
+        gap: 10px;
+    }
+    .btn-accept {
+        background: #28a745; color: white; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .btn-accept:hover { background: #218838; }
+    
+    .btn-decline {
+        background: transparent; border: 1px solid #dc3545; color: #dc3545; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.2s;
+    }
+    .btn-decline:hover { background: rgba(220, 53, 69, 0.1); }
+    
+    .btn-track {
+        background: #feb83e; color: black; border: none; padding: 0.5rem 1rem; border-radius: 8px; font-weight: 600; text-decoration: none; display: inline-block; transition: 0.2s;
+    }
+    .btn-track:hover { background: #ffc857; color: black; text-decoration: none; }
 </style>
 @endsection
 
@@ -128,7 +173,6 @@
         </div>
     @endif
 
-    <!-- Stats Overview -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-value">{{ $profile->total_ratings ?? 0 }}</div>
@@ -148,7 +192,57 @@
         </div>
     </div>
 
-    <!-- Profile Summary -->
+    <div class="dashboard-card">
+        <h2 class="section-title" style="border-bottom-color: #feb83e;">Incoming Job Requests</h2>
+        @if(isset($incomingRequests) && count($incomingRequests) > 0)
+            @foreach($incomingRequests as $job)
+                <div class="job-item">
+                    <div class="job-info">
+                        <h4>Request from: {{ $job->customer_name }}</h4>
+                        <p>✉️ {{ $job->customer_email }} | Requested: {{ \Carbon\Carbon::parse($job->created_at)->diffForHumans() }}</p>
+                    </div>
+                    <div class="job-actions">
+                        <form action="{{ route('tracking.accept', $job->id) }}" method="POST" style="margin:0;">
+                            @csrf
+                            <button type="submit" class="btn-accept">Accept Job</button>
+                        </form>
+                        <form action="{{ route('tracking.decline', $job->id) }}" method="POST" style="margin:0;">
+                            @csrf
+                            <button type="submit" class="btn-decline">Decline</button>
+                        </form>
+                    </div>
+                </div>
+            @endforeach
+        @else
+            <div class="no-data">
+                <p>No new requests at the moment. You'll see them here when a customer books you!</p>
+            </div>
+        @endif
+    </div>
+
+    <div class="dashboard-card">
+        <h2 class="section-title" style="border-bottom-color: #28a745;">Active Service Tracking</h2>
+        @if(isset($activeJobs) && count($activeJobs) > 0)
+            @foreach($activeJobs as $job)
+                <div class="job-item active-job">
+                    <div class="job-info">
+                        <h4>Customer: {{ $job->customer_name }}</h4>
+                        <p>Status: <strong style="color: #28a745;">In Progress</strong> | Started: {{ \Carbon\Carbon::parse($job->updated_at)->diffForHumans() }}</p>
+                    </div>
+                    <div class="job-actions">
+                        <a href="{{ route('tracking.live', $job->id) }}" class="btn-track">
+                            View Live Map
+                        </a>
+                    </div>
+                </div>
+            @endforeach
+        @else
+            <div class="no-data">
+                <p>You have no active sessions running.</p>
+            </div>
+        @endif
+    </div>
+
     <div class="dashboard-card">
         <h2 class="section-title">Profile Information</h2>
         
@@ -214,7 +308,6 @@
         @endif
     </div>
 
-    <!-- Recent Ratings -->
     <div class="dashboard-card">
         <h2 class="section-title">Recent Ratings</h2>
 
@@ -242,14 +335,13 @@
         @endif
     </div>
 
-    <!-- Quick Links -->
     <div class="dashboard-card">
         <h2 class="section-title">Quick Links</h2>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-            <a href="{{ route('provider.show', auth()->id()) }}" class="btn btn-primary w-100">View My Profile</a>
-            <a href="{{ route('profile.edit') }}" class="btn btn-primary w-100">Edit Profile</a>
-            <a href="{{ route('services.index') }}" class="btn btn-primary w-100">View Services</a>
-            <a href="{{ route('dashboard') }}" class="btn btn-primary w-100">Main Dashboard</a>
+            <a href="{{ route('provider.show', auth()->id()) }}" class="btn btn-primary w-100 text-center" style="padding: 0.8rem;">View My Profile</a>
+            <a href="{{ route('profile.edit') }}" class="btn btn-primary w-100 text-center" style="padding: 0.8rem;">Edit Profile</a>
+            <a href="{{ route('services.index') }}" class="btn btn-primary w-100 text-center" style="padding: 0.8rem;">View Services</a>
+            <a href="{{ route('dashboard') }}" class="btn btn-primary w-100 text-center" style="padding: 0.8rem;">Main Dashboard</a>
         </div>
     </div>
 </div>
