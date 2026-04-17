@@ -45,7 +45,27 @@ class TrackingController extends Controller
     }
 
     public function accept($id) {
-        DB::table('trackings')->where('id', $id)->update(['status' => 'accepted', 'updated_at' => now()]);
+        $provider = Auth::user();
+        if (!$provider || $provider->role !== 'provider') {
+            abort(403, 'Only providers can accept requests.');
+        }
+
+        $updated = DB::table('trackings')
+            ->where('id', $id)
+            ->where('status', 'requested')
+            ->where('provider_id', $provider->id)
+            ->update([
+                'status' => 'accepted',
+                'provider_id' => $provider->id,
+                'updated_at' => now(),
+            ]);
+
+        if (!$updated) {
+            return back()->withErrors([
+                'tracking' => 'This request could not be accepted. It may already be handled.',
+            ]);
+        }
+
         return back()->with('success', 'Job Accepted!');
     }
 

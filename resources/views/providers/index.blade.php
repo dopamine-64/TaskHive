@@ -58,6 +58,29 @@
         transform: translateY(-5px);
         background: rgba(255, 255, 255, 0.2);
     }
+
+    .recommended-card {
+        background: linear-gradient(135deg, rgba(255, 215, 0, 0.25), rgba(255, 255, 255, 0.12));
+        border: 1px solid rgba(255, 215, 0, 0.45);
+    }
+
+    .match-pill {
+        display: inline-block;
+        background: #ffd700;
+        color: #000;
+        border-radius: 50px;
+        padding: 4px 12px;
+        font-weight: 700;
+        font-size: 12px;
+    }
+
+    .section-title {
+        color: #ffd700;
+        font-size: 1.5rem;
+        font-weight: 700;
+        text-align: left;
+        margin-bottom: 20px;
+    }
     
     .btn-view-provider {
         background: #ffd700;
@@ -166,13 +189,66 @@
 </div>
 
 <div class="container text-center" style="z-index: 10; position: relative;">
+    @php
+        $recommendedProviders = $recommendedProviders ?? collect();
+        $totalProviders = $totalProviders ?? ($providers->total() + $recommendedProviders->count());
+        $isCustomer = $isCustomer ?? false;
+    @endphp
     
-    @if($providers->count() > 0)
+    @if($totalProviders > 0)
         <div class="results-pill shadow-sm">
-            <i class="fas fa-users"></i> {{ $providers->total() }} Providers Found
+            <i class="fas fa-users"></i> {{ $totalProviders }} Providers Found
         </div>
     @endif
 
+    @if($isCustomer && $recommendedProviders->count() > 0)
+        <h2 class="section-title mt-2">Recommended for You</h2>
+        <div class="row g-4 mb-5">
+            @foreach($recommendedProviders as $provider)
+                <div class="col-md-4">
+                    <div class="service-card recommended-card shadow">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="m-0">{{ $provider->user->name ?? 'Unknown Provider' }}</h5>
+                            <span class="match-pill">{{ number_format($provider->match_percentage ?? 0, 1) }}% Match</span>
+                        </div>
+
+                        <p class="text-muted small mb-2 flex-grow-1" style="color: rgba(255,255,255,0.8) !important;">
+                            {{ Str::limit($provider->bio, 80) ?? 'No bio available.' }}
+                        </p>
+
+                        <div class="small mb-2" style="color: rgba(255,255,255,0.95); font-weight: 500;">
+                            <i class="fas fa-map-marker-alt me-1" style="color: #ff6b6b;"></i>
+                            {{ $provider->service_area ?? $provider->latest_service_location ?? 'Location not specified' }}
+
+                            <br><small style="color: #ffd700;">({{ $provider->distance !== null ? number_format($provider->distance, 1).' km away' : 'Unknown' }})</small>
+                        </div>
+
+                        <div class="small mb-3 text-start" style="color: rgba(255,255,255,0.85);">
+                            <div>Location: {{ number_format($provider->match_breakdown['location'] ?? 0, 1) }}</div>
+                            <div>Rating: {{ number_format($provider->match_breakdown['rating'] ?? 0, 1) }}</div>
+                            <div>Price: {{ number_format($provider->match_breakdown['price'] ?? 0, 1) }}</div>
+                            <div>Skills: {{ number_format($provider->match_breakdown['skills'] ?? 0, 1) }}</div>
+                        </div>
+
+                        <div class="mt-auto pt-3 d-flex flex-column gap-2">
+                            <a href="{{ route('provider.show', $provider->user_id) }}" class="btn-view-provider">
+                                View Profile
+                            </a>
+
+                            <form action="{{ route('tracking.initiate', $provider->user_id) }}" method="POST" class="m-0">
+                                @csrf
+                                <button type="submit" class="btn-book-provider">
+                                    <i class="fas fa-calendar-check me-1"></i> Book Now
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endforeach
+        </div>
+    @endif
+
+    <h2 class="section-title">All Providers</h2>
     <div class="row g-4">
         @forelse($providers as $provider)
         <div class="col-md-4">
@@ -185,11 +261,9 @@
                 
                 <div class="small mb-2" style="color: rgba(255,255,255,0.9); font-weight: 500;">
                     <i class="fas fa-map-marker-alt me-1" style="color: #ff6b6b;"></i> 
-                    {{ $provider->service_area ?? 'Location not specified' }}
+                    {{ $provider->service_area ?? $provider->latest_service_location ?? 'Location not specified' }}
                     
-                    @if(isset($provider->distance))
-                        <br><small style="color: #ffd700;">({{ number_format($provider->distance, 1) }} km away)</small>
-                    @endif
+                    <br><small style="color: #ffd700;">({{ $provider->distance !== null ? number_format($provider->distance, 1).' km away' : 'Unknown' }})</small>
                 </div>
                 
                 <div class="mt-auto pt-3 d-flex flex-column gap-2">
@@ -210,8 +284,8 @@
         <div class="col-12">
             <div class="empty-state shadow">
                 <i class="fas fa-search" style="font-size: 60px; margin-bottom: 20px; color: #ffd700;"></i>
-                <h4 style="font-size: 24px; font-weight: 600;">No providers loaded yet</h4>
-                <p>Please share your location to find experts in your immediate area.</p>
+                <h4 style="font-size: 24px; font-weight: 600;">No additional providers available</h4>
+                <p>Try broadening your filters or updating your location.</p>
                 <a href="{{ url('/dashboard') }}" style="background: #ffd700; color: #000; padding: 10px 30px; border-radius: 50px; text-decoration: none; display: inline-block; margin-top: 20px; font-weight: 600;">Back to Dashboard</a>
             </div>
         </div>
@@ -246,8 +320,9 @@ document.addEventListener("DOMContentLoaded", function() {
     
     const urlParams = new URLSearchParams(window.location.search);
     const hasCoordinates = urlParams.has('lat') && urlParams.has('lng');
+    const hasStoredLocation = @json(auth()->user()->latitude !== null && auth()->user()->longitude !== null);
     
-    if (!sessionStorage.getItem('ask_location_on_services_page') && !hasCoordinates) {
+    if (!sessionStorage.getItem('ask_location_on_services_page') && !hasCoordinates && !hasStoredLocation) {
         setTimeout(() => {
             modal.classList.remove('d-none');
             void modal.offsetWidth; 
