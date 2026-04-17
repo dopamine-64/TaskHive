@@ -18,6 +18,10 @@ class ProviderProfileController extends Controller
     public function show($userId)
     {
         $user = User::findOrFail($userId);
+        if ($user->role !== 'provider') {
+            abort(404, 'Provider not found');
+        }
+
         $profile = ProviderProfile::where('user_id', $userId)->first();
         
         if (!$profile) {

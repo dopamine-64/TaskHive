@@ -22,6 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'latitude',
+        'longitude',
     ];
 
     /**
@@ -41,6 +43,8 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'latitude' => 'decimal:8',
+        'longitude' => 'decimal:8',
     ];
 
     public function providerProfile()
@@ -61,6 +65,21 @@ class User extends Authenticatable
     public function ratingsReceived()
     {
         return $this->hasMany(Rating::class, 'provider_id');
+    }
+
+    public function userPreference()
+    {
+        return $this->hasOne(UserPreference::class);
+    }
+
+    public function providerRecommendations()
+    {
+        return $this->hasMany(ProviderRecommendation::class);
+    }
+
+    public function matchingScores()
+    {
+        return $this->hasMany(MatchingScore::class);
     }
 
     public function isProvider()

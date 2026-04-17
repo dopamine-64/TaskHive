@@ -2,9 +2,13 @@
 
 namespace App\Models;
 
+use App\Services\RecommendationService;
+use App\Services\ScoringService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Support\Collection;
 
 class ProviderProfile extends Model
 {
@@ -21,6 +25,10 @@ class ProviderProfile extends Model
         'latitude',           
         'longitude',          
         'service_radius_km',
+        'is_available',
+        'response_time',
+        'completion_rate',
+        'total_completed_jobs',
         'average_rating',
         'total_ratings',
         'certifications',
@@ -34,6 +42,10 @@ class ProviderProfile extends Model
         'latitude' => 'decimal:8',
         'longitude' => 'decimal:8',
         'service_radius_km' => 'decimal:2',
+        'is_available' => 'boolean',
+        'response_time' => 'integer',
+        'completion_rate' => 'decimal:2',
+        'total_completed_jobs' => 'integer',
     ];
 
     public function user()
@@ -49,6 +61,88 @@ class ProviderProfile extends Model
     public function ratings()
     {
         return $this->hasMany(Rating::class, 'provider_id', 'user_id');
+    }
+
+    public function recommendationCaches()
+    {
+        return $this->hasMany(ProviderRecommendation::class);
+    }
+
+    public function matchingScores()
+    {
+        return $this->hasMany(MatchingScore::class);
+    }
+
+    public function isAvailable(): bool
+    {
+        return (bool) $this->is_available;
+    }
+
+    public function matchScore(array $context = []): float
+    {
+        /** @var ScoringService $scoring */
+        $scoring = app(ScoringService::class);
+        $result = $scoring->calculateForProvider($this, $context);
+
+        return (float) ($result['total_score'] ?? 0.0);
+    }
+
+    public function getRecommendations(int $userId, array $filters = [], int $limit = 5): Collection
+    {
+        /** @var RecommendationService $recommendationService */
+        $recommendationService = app(RecommendationService::class);
+
+        return $recommendationService->recommendForUser($userId, array_merge($filters, [
+            'limit' => $limit,
+        ]));
+    }
+
+    public function scopeActiveAvailable(Builder $query): Builder
+    {
+        return $query->where('is_available', true);
+    }
+
+    public function scopeMinimumRating(Builder $query, float $minRating): Builder
+    {
+        return $query->where('average_rating', '>=', $minRating);
+    }
+
+    public function scopeWithinBudget(Builder $query, ?float $min, ?float $max): Builder
+    {
+        if ($min === null && $max === null) {
+            return $query;
+        }
+
+        $rateExpression = "CAST(COALESCE(NULLIF(fixed_rate, ''), NULLIF(hourly_rate, ''), '0') AS DECIMAL(10,2))";
+
+        if ($min !== null) {
+            $query->whereRaw("{$rateExpression} >= ?", [$min]);
+        }
+
+        if ($max !== null) {
+            $query->whereRaw("{$rateExpression} <= ?", [$max]);
+        }
+
+        return $query;
+    }
+
+    public function scopeForCategory(Builder $query, ?string $category): Builder
+    {
+        if (!$category) {
+            return $query;
+        }
+
+        return $query->where(function (Builder $nested) use ($category) {
+            $nested->whereRaw("JSON_SEARCH(skills, 'one', ?) IS NOT NULL", [$category])
+                ->orWhere('skills', 'like', '%' . $category . '%')
+                ->orWhereExists(function ($sub) use ($category) {
+                    $sub->selectRaw('1')
+                        ->from('services')
+                        ->whereColumn('services.provider_profile_id', 'provider_profiles.id')
+                        ->where('services.is_active', true)
+                        ->where('services.category', 'like', '%' . $category . '%');
+                });
+        });
     }
 
     public function updateRating()

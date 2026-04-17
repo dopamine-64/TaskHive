@@ -5,8 +5,8 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ServiceController;
 use App\Http\Controllers\ProviderProfileController;
+use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\RatingController;
-use App\Http\Controllers\ProviderSearchController;
 use App\Http\Controllers\TrackingController; 
 
 // --- PUBLIC ROUTES ---
@@ -33,11 +33,10 @@ Route::middleware('auth')->group(function () {
     Route::get('/services/categories', [ServiceController::class, 'categories'])->name('services.categories');
 
     // Provider Search & Discovery
-    Route::get('/providers', [ProviderSearchController::class, 'search'])->name('providers.index');
-    Route::get('/providers/search', [ProviderSearchController::class, 'search'])->name('providers.search');
+    Route::get('/providers', [ProviderController::class, 'index'])->name('providers.index');
+    Route::get('/providers/search', [ProviderController::class, 'index'])->name('providers.search');
     
-    // FIXED: Pointing this to TrackingController so $activeJobs and $provider are loaded
-    Route::get('/provider/{userId}', [TrackingController::class, 'showProviderProfile'])->name('provider.show');
+    Route::get('/provider/{userId}', [ProviderProfileController::class, 'show'])->name('provider.show');
 
     // Profile Management
     Route::get('/profile/edit', [ProviderProfileController::class, 'edit'])->name('profile.edit');
