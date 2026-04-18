@@ -54,6 +54,8 @@ class BookingController extends Controller
             'booking_time' => $request->booking_time,
             'address' => $request->address,
             'duration' => $service->duration ?? 60,
+            'amount' => $service->price,             // Saves the price for SSLCommerz
+            'payment_status' => 'pending',           // Sets initial payment status
             'status' => 'requested',
         ]);
 

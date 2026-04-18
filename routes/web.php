@@ -9,6 +9,8 @@ use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\TrackingController; 
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\PaymentController;
+
 // --- PUBLIC ROUTES ---
 Route::get('/', [AuthController::class, 'showAuth']);
 
@@ -19,6 +21,14 @@ Route::middleware('guest')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
 });
+
+// ========== PAYMENT CALLBACK ROUTES (MUST BE PUBLIC) ==========
+// These are outside 'auth' because SSLCommerz sends the POST request directly to your server.
+// Our PaymentController will manually log the customer back in using these routes.
+Route::post('/pay/success', [PaymentController::class, 'success'])->name('payment.success');
+Route::post('/pay/fail', [PaymentController::class, 'fail'])->name('payment.fail');
+Route::post('/pay/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+// ==============================================================
 
 // --- AUTHENTICATED ROUTES ---
 Route::middleware('auth')->group(function () {
@@ -37,6 +47,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/providers/search', [ProviderController::class, 'index'])->name('providers.search');
     
     Route::get('/provider/{userId}', [ProviderProfileController::class, 'show'])->name('provider.show');
+    
     // ========== AYESHA'S BOOKING ROUTES (Module 2) ==========
     Route::get('/service/{id}/book', [BookingController::class, 'create'])->name('booking.create');
     Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
@@ -44,6 +55,13 @@ Route::middleware('auth')->group(function () {
     Route::put('/booking/{id}/reschedule', [BookingController::class, 'reschedule'])->name('booking.reschedule');
     Route::delete('/booking/{id}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
     // ========================================================
+
+    // ========== PAYMENT INITIATION & INVOICE ==========
+    // These stay protected because the user must be logged in to click "Pay Now" or "View Invoice"
+    Route::get('/pay/{booking_id}', [PaymentController::class, 'initiate'])->name('payment.initiate');
+    Route::get('/invoice/{id}', [PaymentController::class, 'invoice'])->name('invoice.show');
+    // ==================================================
+
     // Profile Management
     Route::get('/profile/edit', [ProviderProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProviderProfileController::class, 'update'])->name('profile.update');
@@ -59,7 +77,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/tracking/accept/{id}', [TrackingController::class, 'accept'])->name('tracking.accept');
     Route::post('/tracking/decline/{id}', [TrackingController::class, 'decline'])->name('tracking.decline');
     Route::post('/tracking/complete/{id}', [TrackingController::class, 'complete'])->name('tracking.complete');
-    // Inside the auth middleware group
+    
+    // Customer Profile
     Route::get('/my-profile', [TrackingController::class, 'customerProfile'])->name('customer.profile');
-Route::get('/my-account', [TrackingController::class, 'customerProfile'])->name('customer.profile');
+    Route::get('/my-account', [TrackingController::class, 'customerProfile']); // Alias route if needed
 });

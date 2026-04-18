@@ -29,7 +29,7 @@
     @endif
 
     @php
-        $activeBookings = $bookings->whereIn('status', ['requested', 'accepted']);
+        $activeBookings = $bookings->whereIn('status', ['requested', 'accepted', 'in_progress']);
         $pastBookings = $bookings->whereIn('status', ['completed', 'cancelled', 'declined']);
     @endphp
 
@@ -45,7 +45,7 @@
                             <div>
                                 <h5 class="fw-bold text-dark mb-1">{{ $booking->service_title ?? 'Service #'.$booking->service_id }}</h5>
                                 <p class="text-muted small mb-0">
-                                    <i class="fas fa-user-tie me-1"></i> Provider: {{ $booking->provider_name }}
+                                    <i class="fas fa-user-tie me-1"></i> Provider: {{ $booking->provider_name ?? 'Provider #'.$booking->provider_id }}
                                 </p>
                             </div>
                             
@@ -61,14 +61,19 @@
                             </span>
                         </div>
 
-                        <div class="row g-2 mb-3 bg-light rounded-3 p-3">
-                            <div class="col-6">
+                        {{-- Date, Time, AND Price --}}
+                        <div class="row g-2 mb-3 bg-light rounded-3 p-3 text-center">
+                            <div class="col-4 border-end">
                                 <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">📅 Date</small>
-                                <span class="fw-semibold text-dark">{{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}</span>
+                                <span class="fw-semibold text-dark" style="font-size: 13px;">{{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}</span>
                             </div>
-                            <div class="col-6">
+                            <div class="col-4 border-end">
                                 <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">⏰ Time</small>
-                                <span class="fw-semibold text-dark">{{ date('h:i A', strtotime($booking->booking_time)) }}</span>
+                                <span class="fw-semibold text-dark" style="font-size: 13px;">{{ date('h:i A', strtotime($booking->booking_time)) }}</span>
+                            </div>
+                            <div class="col-4">
+                                <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">💰 Price</small>
+                                <span class="fw-bold text-success" style="font-size: 14px;">৳{{ number_format($booking->amount ?? 0, 0) }}</span>
                             </div>
                         </div>
 
@@ -77,6 +82,7 @@
                             <p class="text-dark small mb-0"><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ $booking->address }}</p>
                         </div>
 
+                        {{-- ACTION BUTTONS --}}
                         @if($booking->status == 'requested')
                             <div class="d-flex gap-2">
                                 <a href="{{ route('booking.reschedule.form', $booking->id) }}" class="btn btn-warning flex-fill rounded-pill fw-bold small py-2" style="font-size: 13px;">
@@ -90,11 +96,28 @@
                                     </button>
                                 </form>
                             </div>
+                            
                         @elseif($booking->status == 'accepted')
-                            <div class="alert alert-success mt-2 py-2 small text-center rounded-pill">
-                                <i class="fas fa-check-circle me-1"></i> ✅ Provider has accepted your booking!
-                            </div>
+                            {{-- Payment Logic with Invoice Button --}}
+                            @if($booking->payment_status == 'paid')
+                                <div class="alert alert-success mt-2 py-3 text-center rounded-4 mb-0 border-0 shadow-sm">
+                                    <h6 class="mb-2 fw-bold text-success"><i class="fas fa-check-circle me-1"></i> Payment Completed!</h6>
+                                    <a href="{{ route('invoice.show', $booking->id) }}" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">
+                                        <i class="fas fa-file-invoice-dollar me-1"></i> View Invoice
+                                    </a>
+                                </div>
+                            @else
+                                <div class="d-flex flex-column gap-2">
+                                    <div class="text-success small text-center fw-bold mb-1">
+                                        Provider accepted! Complete payment to confirm.
+                                    </div>
+                                    <a href="{{ route('payment.initiate', $booking->id) }}" class="btn btn-success w-100 rounded-pill fw-bold py-2 shadow-sm" style="font-size: 14px;">
+                                        <i class="fas fa-credit-card me-1"></i> Pay ৳{{ number_format($booking->amount ?? 0, 0) }} Now
+                                    </a>
+                                </div>
+                            @endif
                         @endif
+
                     </div>
                 </div>
             </div>
