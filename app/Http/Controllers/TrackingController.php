@@ -14,15 +14,31 @@ class TrackingController extends Controller
     }
 
     public function initiateTracking(Request $request, $providerId) {
-        $trackingId = DB::table('trackings')->insertGetId([
-            'customer_id' => Auth::id(),
-            'provider_id' => $providerId,
-            'status' => 'requested',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        return redirect()->route('tracking.live', $trackingId);
+    // Get service_id from request or use provider's first service
+    $serviceId = $request->service_id;
+    
+    if (!$serviceId) {
+        // If no service_id provided, get provider's first service
+        $service = \App\Models\Service::where('user_id', $providerId)->first();
+        $serviceId = $service ? $service->id : null;
     }
+    
+    $service = \App\Models\Service::find($serviceId);
+    
+    $trackingId = DB::table('trackings')->insertGetId([
+        'customer_id' => Auth::id(),
+        'provider_id' => $providerId,
+        'service_id' => $serviceId,
+        'booking_date' => $request->booking_date ?? now()->format('Y-m-d'),
+        'booking_time' => $request->booking_time ?? '09:00:00',
+        'address' => $request->address ?? 'To be confirmed',
+        'duration' => $service ? $service->duration : 60,
+        'status' => 'requested',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+    return redirect()->route('tracking.live', $trackingId);
+}
 
     public function liveTracking($id) {
         $tracking = DB::table('trackings')->where('id', $id)->first();
@@ -71,52 +87,48 @@ class TrackingController extends Controller
 
     // This method handles the Provider Profile logic
     public function showProviderProfile($id) {
-    $provider = User::findOrFail($id);
-    
-    // 1. Fetch NEW requests (Status: requested)
-    $incomingRequests = DB::table('trackings')
-        ->join('users', 'trackings.customer_id', '=', 'users.id')
-        ->where('trackings.provider_id', $id)
-        ->where('trackings.status', 'requested')
-        ->select('trackings.*', 'users.name as customer_name')
-        ->get();
+        $provider = User::findOrFail($id);
+        
+        // 1. Fetch NEW requests (Status: requested)
+        $incomingRequests = DB::table('trackings')
+            ->join('users', 'trackings.customer_id', '=', 'users.id')
+            ->where('trackings.provider_id', $id)
+            ->where('trackings.status', 'requested')
+            ->select('trackings.*', 'users.name as customer_name')
+            ->get();
 
-    // 2. Fetch ACTIVE jobs (Status: accepted or in_progress)
-    $activeJobs = DB::table('trackings')
-        ->join('users', 'trackings.customer_id', '=', 'users.id')
-        ->where('trackings.provider_id', $id)
-        ->whereIn('trackings.status', ['accepted', 'in_progress'])
-        ->select('trackings.*', 'users.name as customer_name')
-        ->get();
+        // 2. Fetch ACTIVE jobs (Status: accepted or in_progress)
+        $activeJobs = DB::table('trackings')
+            ->join('users', 'trackings.customer_id', '=', 'users.id')
+            ->where('trackings.provider_id', $id)
+            ->whereIn('trackings.status', ['accepted', 'in_progress'])
+            ->select('trackings.*', 'users.name as customer_name')
+            ->get();
 
-    return view('services.profile-show', compact('provider', 'incomingRequests', 'activeJobs'));
-}
-    // Add this method to your existing TrackingController
+        return view('services.profile-show', compact('provider', 'incomingRequests', 'activeJobs'));
+    }
 
-// Add this method to your existing TrackingController
+    // Customer Profile - Shows ALL bookings
+    public function customerProfile()
+    {
+        $userId = Auth::id();
 
-public function customerProfile()
-{
-    $userId = Auth::id();
+        $bookings = DB::table('trackings')
+            ->leftJoin('services', 'trackings.service_id', '=', 'services.id')
+            ->join('users as providers', 'trackings.provider_id', '=', 'providers.id')
+            ->where('trackings.customer_id', $userId)
+            ->orderBy('trackings.created_at', 'desc')
+            ->select(
+                'trackings.*',
+                'providers.name as provider_name',
+                'services.title as service_title',
+                'services.category as service_category'
+            )
+            ->get();
 
-    // Fetch ONLY the booking that is 'accepted'
-    $activeBooking = DB::table('trackings')
-        ->join('users', 'trackings.provider_id', '=', 'users.id')
-        ->where('trackings.customer_id', $userId)
-        ->where('trackings.status', 'accepted') 
-        ->select('trackings.*', 'users.name as provider_name')
-        ->first();
+        return view('profile.customer', compact('bookings'));
+    }
 
-    // History
-    $completedBookings = DB::table('trackings')
-        ->join('users', 'trackings.provider_id', '=', 'users.id')
-        ->where('trackings.customer_id', $userId)
-        ->where('trackings.status', 'completed')
-        ->select('trackings.*', 'users.name as provider_name')
-        ->get();
-
-    return view('profile.customer', compact('activeBooking', 'completedBookings'));
-}
     public function complete($id) {
         DB::table('trackings')->where('id', $id)->update(['status' => 'completed', 'updated_at' => now()]);
         return redirect()->route('provider.show', Auth::id())->with('success', 'Job Completed!');

@@ -95,6 +95,26 @@
         width: fit-content;
     }
     
+    .btn-book-now {
+        background: linear-gradient(135deg, #ffd700, #ffb347);
+        color: #000;
+        border: none;
+        border-radius: 50px;
+        padding: 10px 20px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        width: 100%;
+        margin-top: 15px;
+        transition: transform 0.2s;
+    }
+    
+    .btn-book-now:hover {
+        transform: scale(1.02);
+        color: #000;
+    }
+    
     .empty-state {
         text-align: center;
         padding: 60px;
@@ -206,6 +226,13 @@
                 
                 <div class="price">৳{{ number_format($service->price) }}</div>
                 <span class="badge-category">{{ $service->category }}</span>
+                
+                <!-- BOOK NOW BUTTON - Only for customers -->
+                @if(auth()->user()->role == 'user')
+                    <a href="{{ route('booking.create', $service->id) }}" class="btn-book-now">
+                        <i class="fas fa-calendar-check"></i> Book Now
+                    </a>
+                @endif
             </div>
         </div>
         @empty
@@ -245,13 +272,12 @@
 document.addEventListener("DOMContentLoaded", function() {
     const modal = document.getElementById('customLocationModal');
     
-    // NEW UNIQUE KEY: This guarantees the popup will show right now even if you clicked 'Not Now' before.
     if (!sessionStorage.getItem('ask_location_on_services_page')) {
         setTimeout(() => {
             modal.classList.remove('d-none');
-            void modal.offsetWidth; // Trigger CSS reflow
+            void modal.offsetWidth;
             modal.classList.add('show');
-        }, 300); // Trigger quickly (300ms) after page load
+        }, 300);
     }
 });
 
@@ -259,12 +285,10 @@ function closeLocationModal() {
     const modal = document.getElementById('customLocationModal');
     modal.classList.remove('show');
     
-    // Wait for the fade-out animation to finish, then hide entirely
     setTimeout(() => {
         modal.classList.add('d-none');
     }, 300);
     
-    // Mark as asked so it doesn't repeatedly spam the user on refresh
     sessionStorage.setItem('ask_location_on_services_page', 'true');
 }
 
@@ -279,7 +303,6 @@ function acceptLocationSearch() {
     if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
             function(position) {
-                // Save decision and redirect with location data
                 sessionStorage.setItem('ask_location_on_services_page', 'true');
                 window.location.href = `/providers/search?lat=${position.coords.latitude}&lng=${position.coords.longitude}`;
             },
