@@ -10,11 +10,32 @@ return new class extends Migration
     {
         Schema::create('trackings', function (Blueprint $table) {
             $table->id();
+            
+            // Foreign Keys
             $table->foreignId('customer_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('provider_id')->constrained('users')->onDelete('cascade');
-            // Strict status stages for your state machine
-            // Change your status line to include 'declined'
-$table->enum('status', ['requested', 'in_progress', 'completed', 'declined'])->default('requested');
+            $table->foreignId('service_id')->nullable()->constrained('services')->onDelete('cascade');
+
+            // NEW: The missing Booking details causing your crash!
+            $table->date('booking_date')->nullable();
+            $table->time('booking_time')->nullable();
+            $table->text('address')->nullable();
+            $table->integer('duration')->nullable(); 
+            $table->decimal('amount', 10, 2)->nullable(); // The locked-in price for the payment gateway
+
+            // Expanded status stages to match your BookingController logic
+            $table->enum('status', [
+                'requested', 
+                'accepted', 
+                'in_progress', 
+                'completed', 
+                'declined', 
+                'cancelled'
+            ])->default('requested');
+
+            // NEW: Payment status (for our upcoming Payment Gateway integration)
+            $table->string('payment_status')->default('pending');
+
             // Storing coordinates with high precision for accurate map markers
             $table->decimal('current_lat', 10, 8)->nullable();
             $table->decimal('current_lng', 10, 8)->nullable();

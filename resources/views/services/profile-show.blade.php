@@ -65,6 +65,8 @@
     .btn-decline { background-color: #dc3545; color: white; border: none; border-radius: 8px; padding: 5px 15px; }
     .btn-finish { background-color: #3b82f6; color: white; border: none; border-radius: 8px; padding: 5px 15px; }
     .btn-live { border: 1px solid #79d7ed; color: #79d7ed; border-radius: 8px; text-decoration: none; }
+    .btn-invoice { background-color: #20c997; color: white; border: none; border-radius: 8px; text-decoration: none; padding: 5px 15px; }
+    .btn-invoice:hover { color: white; background-color: #1aa179; }
 </style>
 
 @php
@@ -231,7 +233,8 @@
                             <thead>
                                 <tr class="text-white-50 border-secondary">
                                     <th class="fw-normal">Customer</th>
-                                    <th class="fw-normal">Status</th>
+                                    <th class="fw-normal">Job Status</th>
+                                    <th class="fw-normal">Payment</th> {{-- Added Payment Header --}}
                                     <th class="fw-normal">Actions</th>
                                 </tr>
                             </thead>
@@ -240,9 +243,27 @@
                                     <tr class="border-secondary align-middle">
                                         <td>{{ $job->customer_name }}</td>
                                         <td><span class="badge badge-status">{{ ucfirst($job->status) }}</span></td>
+                                        
+                                        {{-- Payment Status Badge --}}
+                                        <td>
+                                            @if($job->payment_status == 'paid')
+                                                <span class="badge bg-success rounded-pill px-3 py-2"><i class="fas fa-check me-1"></i> PAID</span>
+                                            @else
+                                                <span class="badge bg-warning text-dark rounded-pill px-3 py-2">UNPAID</span>
+                                            @endif
+                                        </td>
+
                                         <td>
                                             <div class="d-flex gap-2">
-                                                <a href="{{ route('tracking.live', $job->id) }}" class="btn btn-live btn-sm">Live Map</a>
+                                                <a href="{{ route('tracking.live', $job->id) }}" class="btn btn-live btn-sm d-flex align-items-center">Live Map</a>
+                                                
+                                                {{-- Invoice Button (Only if Paid) --}}
+                                                @if($job->payment_status == 'paid')
+                                                    <a href="{{ route('invoice.show', $job->id) }}" class="btn btn-invoice btn-sm d-flex align-items-center">
+                                                        <i class="fas fa-file-invoice me-1"></i> Invoice
+                                                    </a>
+                                                @endif
+
                                                 <form action="{{ route('tracking.complete', $job->id) }}" method="POST" class="m-0">
                                                     @csrf
                                                     <button type="submit" class="btn btn-finish btn-sm">Finish Job</button>
@@ -252,7 +273,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center text-white-50 py-4">No active jobs in progress.</td>
+                                        <td colspan="4" class="text-center text-white-50 py-4">No active jobs in progress.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
