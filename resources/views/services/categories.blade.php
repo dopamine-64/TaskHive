@@ -82,6 +82,26 @@
         width: fit-content;
     }
     
+    .btn-book-now {
+        background: linear-gradient(135deg, #ffd700, #ffb347);
+        color: #000;
+        border: none;
+        border-radius: 50px;
+        padding: 10px 20px;
+        font-weight: 600;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        width: 100%;
+        margin-top: 15px;
+        transition: transform 0.2s;
+    }
+    
+    .btn-book-now:hover {
+        transform: scale(1.02);
+        color: #000;
+    }
+    
     .empty-state {
         text-align: center;
         padding: 60px;
@@ -147,6 +167,13 @@
 
                 <div class="price">৳{{ number_format($service->price) }}</div>
                 <span class="badge-category">{{ $service->category }}</span>
+                
+                <!-- BOOK NOW BUTTON - Only for customers -->
+                @if(auth()->user()->role == 'user')
+                    <a href="{{ route('booking.create', $service->id) }}" class="btn-book-now">
+                        <i class="fas fa-calendar-check"></i> Book Now
+                    </a>
+                @endif
             </div>
         </div>
         @empty

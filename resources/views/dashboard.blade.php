@@ -103,26 +103,33 @@
         Explore top-rated professionals across top categories from Home Maintenance to Web Development and Creative Arts.
     </p>
 
-    <div class="search-glass-panel">
-        <div class="search-field">
-            <label>Location</label>
-            <input type="text" placeholder="City or Area...">
+    <!-- FIXED: Added FORM tag with method GET and action -->
+    <form method="GET" action="{{ url('/services') }}">
+        <div class="search-glass-panel">
+            <div class="search-field">
+                <label>Location</label>
+                <!-- FIXED: Added name="location" -->
+                <input type="text" name="location" placeholder="City or Area...">
+            </div>
+            <div class="search-field">
+                <label>Service Type</label>
+                <!-- FIXED: Added name="category" -->
+                <input type="text" name="category" placeholder="e.g. Plumber, Designer..">
+            </div>
+            <div class="search-field">
+                <label>Price Range</label>
+                <!-- FIXED: Added name="price_range" -->
+                <input type="text" name="price_range" placeholder="Min - Max">
+            </div>
+            <!-- FIXED: Changed button to type="submit" -->
+            <button type="submit" class="search-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+            </button>
         </div>
-        <div class="search-field">
-            <label>Service Type</label>
-            <input type="text" placeholder="e.g. Plumber, Designer..">
-        </div>
-        <div class="search-field">
-            <label>Price Range</label>
-            <input type="text" placeholder="Min - Max">
-        </div>
-        <button class="search-btn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-        </button>
-    </div>
+    </form>
 
     <div class="stats-container">
         <div class="stat-item"><h3>0+</h3><p>Categories</p></div>

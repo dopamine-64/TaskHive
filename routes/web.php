@@ -8,7 +8,7 @@ use App\Http\Controllers\ProviderProfileController;
 use App\Http\Controllers\ProviderController;
 use App\Http\Controllers\RatingController;
 use App\Http\Controllers\TrackingController; 
-
+use App\Http\Controllers\BookingController;
 // --- PUBLIC ROUTES ---
 Route::get('/', [AuthController::class, 'showAuth']);
 
@@ -37,7 +37,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/providers/search', [ProviderController::class, 'index'])->name('providers.search');
     
     Route::get('/provider/{userId}', [ProviderProfileController::class, 'show'])->name('provider.show');
-
+    // ========== AYESHA'S BOOKING ROUTES (Module 2) ==========
+    Route::get('/service/{id}/book', [BookingController::class, 'create'])->name('booking.create');
+    Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
+    Route::get('/booking/{id}/reschedule', [BookingController::class, 'rescheduleForm'])->name('booking.reschedule.form');
+    Route::put('/booking/{id}/reschedule', [BookingController::class, 'reschedule'])->name('booking.reschedule');
+    Route::delete('/booking/{id}/cancel', [BookingController::class, 'cancel'])->name('booking.cancel');
+    // ========================================================
     // Profile Management
     Route::get('/profile/edit', [ProviderProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile', [ProviderProfileController::class, 'update'])->name('profile.update');
