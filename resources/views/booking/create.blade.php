@@ -63,7 +63,7 @@
                     
                     <div class="text-center mt-3">
                         <a href="{{ route('customer.profile') }}" class="text-muted text-decoration-none small">
-                            ← Back to My Bookingsdas
+                            ← Back to My Bookings
                         </a>
                     </div>
                 </div>
