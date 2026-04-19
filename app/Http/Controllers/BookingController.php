@@ -34,7 +34,28 @@ class BookingController extends Controller
 
         $service = Service::findOrFail($request->service_id);
 
-        // Check availability
+        // 1. Prevent customer from booking the exact same service if they already have an active request
+        $activeServiceBooking = Tracking::where('customer_id', Auth::id())
+            ->where('service_id', $request->service_id)
+            ->whereIn('status', ['requested', 'accepted', 'in_progress'])
+            ->first();
+
+        if ($activeServiceBooking) {
+            return back()->with('error', 'You already have an active request for this service. Please wait for it to finish or cancel it first.');
+        }
+
+        // 2. Prevent customer from double-booking themselves at the exact same date and time
+        $customerTimeClash = Tracking::where('customer_id', Auth::id())
+            ->where('booking_date', $request->booking_date)
+            ->where('booking_time', $request->booking_time)
+            ->whereIn('status', ['requested', 'accepted', 'in_progress'])
+            ->first();
+
+        if ($customerTimeClash) {
+            return back()->with('error', 'You already have a service booked at this exact date and time.');
+        }
+
+        // 3. Check if the provider is available
         $existingBooking = Tracking::where('provider_id', $service->user_id)
             ->where('booking_date', $request->booking_date)
             ->where('booking_time', $request->booking_time)
@@ -54,8 +75,8 @@ class BookingController extends Controller
             'booking_time' => $request->booking_time,
             'address' => $request->address,
             'duration' => $service->duration ?? 60,
-            'amount' => $service->price,             // Saves the price for SSLCommerz
-            'payment_status' => 'pending',           // Sets initial payment status
+            'amount' => $service->price,             
+            'payment_status' => 'pending',
             'status' => 'requested',
         ]);
 
@@ -120,7 +141,8 @@ class BookingController extends Controller
             return back()->with('error', 'Cannot cancel completed booking.');
         }
 
-        $booking->update(['status' => 'cancelled']);
+        // Using 'declined' here so your database doesn't throw the 1265 Data Truncated error!
+        $booking->update(['status' => 'declined']);
 
         return redirect()->route('customer.profile')->with('success', 'Booking cancelled successfully.');
     }
