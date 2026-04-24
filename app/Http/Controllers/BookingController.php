@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Service;
 use App\Models\Tracking;
+use App\Models\User;
+use App\Notifications\BookingRequestNotification;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
 
@@ -67,7 +69,7 @@ class BookingController extends Controller
         }
 
         // Create booking
-        Tracking::create([
+        $booking = Tracking::create([
             'service_id' => $service->id,
             'customer_id' => Auth::id(),
             'provider_id' => $service->user_id,
@@ -79,6 +81,11 @@ class BookingController extends Controller
             'payment_status' => 'pending',
             'status' => 'requested',
         ]);
+
+        $provider = User::find($booking->provider_id);
+        if ($provider) {
+            $provider->notify(new BookingRequestNotification());
+        }
 
         return redirect()->route('customer.profile')->with('success', 'Booking request sent to provider!');
     }
