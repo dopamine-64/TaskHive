@@ -106,18 +106,32 @@
         <div class="d-flex align-items-center gap-3">
             @auth
                 @if(Auth::user()->role === 'admin')
-                    <?php $recentComplaints = \App\Models\Complaint::with('user')->latest()->take(5)->get(); ?>
+                    @php
+                        $recentComplaints = \App\Models\Complaint::with('user')->latest()->take(5)->get();
+                    @endphp
                     <div class="dropdown">
                       <button class="btn btn-outline-light dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Complaints <span class="badge bg-danger">{{ $recentComplaints->count() }}</span>
                       </button>
                       <ul class="dropdown-menu dropdown-menu-end" style="min-width: 320px;">
                         @forelse($recentComplaints as $c)
-                          <?php $providerName = $c->target_type === 'provider' ? (\App\Models\User::find($c->target_id)->name ?? '—') : ($c->target_type === 'booking' ? 'Booking #'.$c->target_id : $c->target_type); ?>
+                          @php
+                            $providerName = '—';
+                            $customerName = $c->user->name ?? '—';
+                            if ($c->target_type === 'provider') {
+                                $provider = \App\Models\User::find($c->target_id);
+                                $providerName = $provider?->name ?? '—';
+                            } elseif ($c->target_type === 'booking') {
+                                $booking = \App\Models\Tracking::with('provider')->find($c->target_id);
+                                $providerName = $booking?->provider?->name ?? '—';
+                            } else {
+                                $providerName = ucfirst($c->target_type);
+                            }
+                          @endphp
                           <li class="dropdown-item">
                             <a href="{{ route('admin.complaint.show', $c->id) }}" class="text-decoration-none">
                               <strong>{{ $providerName }}</strong><br/>
-                              <small>{{ $c->user->name ?? '—' }}</small>
+                              <small>{{ $customerName }}</small>
                             </a>
                           </li>
                           <li><hr class="dropdown-divider"></li>
