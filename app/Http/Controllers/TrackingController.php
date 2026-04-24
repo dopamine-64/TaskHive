@@ -9,6 +9,7 @@ use App\Notifications\BookingDeclinedNotification;
 use App\Notifications\BookingRequestNotification;
 use App\Notifications\BookingAcceptedConfirmation;
 use App\Notifications\BookingCompletedConfirmation;
+use App\Models\Rating;
 
 
 use Illuminate\Http\Request;
@@ -72,7 +73,14 @@ class TrackingController extends Controller
             'lng' => 90.4200
         ];
 
-        return view('tracking.live', compact('tracking', 'customer', 'provider', 'customerLocation', 'providerLocation'));
+        $hasRatedCurrentTracking = false;
+        if ((int) Auth::id() === (int) $tracking->customer_id) {
+            $hasRatedCurrentTracking = Rating::where('reviewer_id', Auth::id())
+                ->where('tracking_id', $tracking->id)
+                ->exists();
+        }
+
+        return view('tracking.live', compact('tracking', 'customer', 'provider', 'customerLocation', 'providerLocation', 'hasRatedCurrentTracking'));
     }
 
     public function accept($id) {
@@ -150,7 +158,13 @@ class TrackingController extends Controller
             )
             ->get();
 
-        return view('profile.customer', compact('bookings'));
+        $ratedTrackingIds = Rating::where('reviewer_id', $userId)
+            ->whereNotNull('tracking_id')
+            ->pluck('tracking_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        return view('profile.customer', compact('bookings', 'ratedTrackingIds'));
     }
 
     public function complete($id) {

@@ -4,6 +4,26 @@
 
 @section('content')
 <div class="container py-5">
+    <style>
+        .rating-stars {
+            display: inline-flex;
+            flex-direction: row-reverse;
+            gap: 6px;
+        }
+        .rating-stars input { display: none; }
+        .rating-stars label {
+            cursor: pointer;
+            font-size: 1.8rem;
+            color: #d1d5db;
+            transition: color .15s ease;
+            margin: 0;
+        }
+        .rating-stars label:hover,
+        .rating-stars label:hover ~ label,
+        .rating-stars input:checked ~ label {
+            color: #f59e0b;
+        }
+    </style>
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-white fw-bold mb-0">My Bookings</h2>
         <a href="{{ url('/services') }}" class="btn btn-sm btn-outline-light rounded-pill px-3">
@@ -142,6 +162,8 @@
                             <div>
                                 <h6 class="text-dark mb-0">{{ $booking->service_title ?? 'Service #'.$booking->service_id }}</h6>
                                 <small class="text-muted">
+                                    {{ $booking->provider_name ?? 'Provider #'.$booking->provider_id }}
+                                    •
                                     {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') : 'Not set' }}
                                     •
                                     {{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('h:i A') : 'Not set' }}
@@ -155,6 +177,22 @@
                                 {{ strtoupper($booking->status) }}
                             </span>
                         </div>
+                        @if($booking->status === 'completed' && !in_array((int) $booking->id, $ratedTrackingIds ?? [], true))
+                            <div class="mt-3">
+                                <button
+                                    type="button"
+                                    class="btn btn-sm btn-outline-primary rounded-pill px-3 open-rate-review-modal"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#rateReviewModal"
+                                    data-action="{{ route('rating.store', ['providerId' => $booking->provider_id]) }}"
+                                    data-tracking-id="{{ $booking->id }}"
+                                    data-provider="{{ $booking->provider_name ?? 'Provider #'.$booking->provider_id }}"
+                                    data-service="{{ $booking->service_title ?? 'Service #'.$booking->service_id }}"
+                                >
+                                    <i class="fas fa-star me-1"></i> Rate &amp; Review
+                                </button>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -171,4 +209,73 @@
         </div>
     @endif
 </div>
+
+<div class="modal fade" id="rateReviewModal" tabindex="-1" aria-labelledby="rateReviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="rateReviewModalLabel">Rate &amp; Review</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="rateReviewForm" method="POST" action="">
+                @csrf
+                <input type="hidden" name="tracking_id" id="rate-tracking-id" value="">
+                <div class="modal-body">
+                    <p class="text-muted small mb-3" id="rateReviewContext"></p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold d-block">Star Rating</label>
+                        <div class="rating-stars">
+                            <input type="radio" id="rate-star-5" name="rating" value="5" required><label for="rate-star-5">★</label>
+                            <input type="radio" id="rate-star-4" name="rating" value="4"><label for="rate-star-4">★</label>
+                            <input type="radio" id="rate-star-3" name="rating" value="3"><label for="rate-star-3">★</label>
+                            <input type="radio" id="rate-star-2" name="rating" value="2"><label for="rate-star-2">★</label>
+                            <input type="radio" id="rate-star-1" name="rating" value="1"><label for="rate-star-1">★</label>
+                        </div>
+                        @error('rating')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-0">
+                        <label for="rate-review-text" class="form-label fw-semibold">Review</label>
+                        <textarea id="rate-review-text" name="review" rows="4" class="form-control" placeholder="Share your experience...">{{ old('review') }}</textarea>
+                        @error('review')
+                            <div class="text-danger small mt-1">{{ $message }}</div>
+                        @enderror
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('rateReviewForm');
+        const context = document.getElementById('rateReviewContext');
+        const trackingInput = document.getElementById('rate-tracking-id');
+        const triggerButtons = document.querySelectorAll('.open-rate-review-modal');
+        const starInputs = form ? form.querySelectorAll('input[name="rating"]') : [];
+
+        triggerButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (!form || !context) return;
+
+                form.action = this.dataset.action || '';
+                if (trackingInput) {
+                    trackingInput.value = this.dataset.trackingId || '';
+                }
+                context.textContent = `Review for ${this.dataset.provider || 'Provider'} - ${this.dataset.service || 'Service'}`;
+
+                starInputs.forEach(function (input) {
+                    input.checked = false;
+                });
+            });
+        });
+    });
+</script>
 @endsection

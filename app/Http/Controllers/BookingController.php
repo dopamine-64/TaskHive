@@ -84,7 +84,7 @@ class BookingController extends Controller
 
         $provider = User::find($booking->provider_id);
         if ($provider) {
-            $provider->notify(new BookingRequestNotification());
+            $provider->notify(new BookingRequestNotification($booking));
         }
 
         return redirect()->route('customer.profile')->with('success', 'Booking request sent to provider!');
