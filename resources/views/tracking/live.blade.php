@@ -170,20 +170,25 @@
                         <i class="fas fa-star mb-3" style="font-size: 50px; color: #ffd700;"></i>
                         <h2>Task Completed!</h2>
                         @if(Auth::id() == $tracking->customer_id)
-                            <div class="row justify-content-center">
-                                <div class="col-md-8">
-                                    <form action="{{ route('rating.store', $provider->id) }}" method="POST">
-                                        @csrf
-                                        <select name="rating" class="rating-select" required>
-                                            <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
-                                            <option value="4">⭐⭐⭐⭐ (4/5)</option>
-                                            <option value="3">⭐⭐⭐ (3/5)</option>
-                                        </select>
-                                        <textarea name="review" class="review-textarea" placeholder="Write a review..." required></textarea>
-                                        <button type="submit" class="btn-submit-review">Submit Feedback</button>
-                                    </form>
+                            @if($hasRatedCurrentTracking)
+                                <p>You already submitted feedback for this completed booking.</p>
+                            @else
+                                <div class="row justify-content-center">
+                                    <div class="col-md-8">
+                                        <form action="{{ route('rating.store', $provider->id) }}" method="POST">
+                                            @csrf
+                                            <input type="hidden" name="tracking_id" value="{{ $tracking->id }}">
+                                            <select name="rating" class="rating-select" required>
+                                                <option value="5">⭐⭐⭐⭐⭐ (5/5)</option>
+                                                <option value="4">⭐⭐⭐⭐ (4/5)</option>
+                                                <option value="3">⭐⭐⭐ (3/5)</option>
+                                            </select>
+                                            <textarea name="review" class="review-textarea" placeholder="Write a review..." required></textarea>
+                                            <button type="submit" class="btn-submit-review">Submit Feedback</button>
+                                        </form>
+                                    </div>
                                 </div>
-                            </div>
+                            @endif
                         @else
                             <p>Good job! The customer has been notified to leave a review.</p>
                         @endif
