@@ -27,7 +27,16 @@
                 <tr>
                     <td>{{ $c->id }}</td>
                     <td>{{ $c->user->name ?? '—' }} ({{ $c->user->email ?? '—' }})</td>
-                    <td>{{ $c->target_type ?? '—' }} {{ $c->target_id ? "(#{$c->target_id})" : '' }}</td>
+                    @php
+                        $providerName = '—';
+                        if ($c->target_type === 'provider') {
+                            $providerName = \App\Models\User::find($c->target_id)?->name ?? '—';
+                        } elseif ($c->target_type === 'booking') {
+                            $booking = \App\Models\Tracking::with('provider')->find($c->target_id);
+                            $providerName = $booking?->provider?->name ?? '—';
+                        }
+                    @endphp
+                    <td>{{ $providerName }} <br/><small>{{ $c->target_type ?? '—' }} {{ $c->target_id ? "(#{$c->target_id})" : '' }}</small></td>
                     <td style="max-width:360px; white-space:pre-wrap;">{{ Str::limit($c->description, 140) }}</td>
                     <td>{{ ucfirst($c->status) }}</td>
                     <td>{{ $c->created_at->diffForHumans() }}</td>
