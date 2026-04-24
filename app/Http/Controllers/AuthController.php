@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    // The new method that loads the interactive split-screen view
     public function showAuth()
     {
         return view('auth.combined');
@@ -25,6 +24,14 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
+            
+            $user = Auth::user();
+            
+            // Redirect admin to admin dashboard
+            if ($user->role === 'admin') {
+                return redirect()->route('admin.dashboard');
+            }
+            
             return redirect()->intended(route('dashboard'));
         }
 
@@ -49,7 +56,6 @@ class AuthController extends Controller
             'role' => $request->role,
         ]);
 
-        // Create a provider profile if registering as a provider
         if ($request->role === 'provider') {
             ProviderProfile::create(['user_id' => $user->id]);
         }
