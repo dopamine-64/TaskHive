@@ -8,8 +8,11 @@ use App\Models\Tracking;
 use App\Models\ProviderProfile;
 use App\Models\Service;
 use App\Models\ActivityLog;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -211,6 +214,49 @@ class AdminController extends Controller
         $complaint->delete();
         $this->logActivity('Deleted complaint', 'complaint', $id, "Complaint deleted");
         return back()->with('success', 'Complaint removed.');
+    }
+
+    // ---------- REPORTS & ANALYTICS ----------
+    public function reports()
+    {
+        // 1. Revenue Trends (Grouped by month for the last 6 months)
+        $revenueData = Transaction::select(
+            DB::raw('SUM(amount) as total'),
+            DB::raw("DATE_FORMAT(created_at, '%M %Y') as month")
+        )
+        ->where('created_at', '>=', Carbon::now()->subMonths(6))
+        ->groupBy('month')
+        ->orderByRaw('MIN(created_at)') // Orders chronologically
+        ->get();
+
+        $revenueLabels = $revenueData->pluck('month');
+        $revenueValues = $revenueData->pluck('total');
+
+        // 2. Booking Statistics (Count by status)
+        $bookingStats = Tracking::select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        // 3. Top Performing Providers (By completed services)
+        $topProviders = Tracking::with('provider')
+            ->select('provider_id', DB::raw('count(*) as total_completed'))
+            ->where('status', 'completed')
+            ->groupBy('provider_id')
+            ->orderByDesc('total_completed')
+            ->take(5)
+            ->get();
+
+        // 4. Service Comparisons (Most requested services)
+        $serviceStats = Tracking::with('service')
+            ->select('service_id', DB::raw('count(*) as total_requests'))
+            ->groupBy('service_id')
+            ->orderByDesc('total_requests')
+            ->take(5)
+            ->get();
+
+        return view('admin.reports', compact(
+            'revenueLabels', 'revenueValues', 'bookingStats', 'topProviders', 'serviceStats'
+        ));
     }
 
     // ---------- SYSTEM ACTIVITIES ----------
