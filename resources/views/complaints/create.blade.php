@@ -25,12 +25,12 @@
 
         <div class="mb-3">
             <label class="form-label">Related to (optional)</label>
-            <input name="target_type" class="form-control" placeholder="service, booking, provider, user">
+            <input name="target_type" class="form-control" value="{{ old('target_type', request('target_type')) }}" placeholder="service, booking, provider, user">
         </div>
 
         <div class="mb-3">
             <label class="form-label">Related item ID (optional)</label>
-            <input name="target_id" type="number" class="form-control" placeholder="e.g. booking id or service id">
+            <input name="target_id" type="number" class="form-control" value="{{ old('target_id', request('target_id')) }}" placeholder="e.g. booking id or service id">
         </div>
 
         <div class="mb-3">
