@@ -14,7 +14,7 @@ return new class extends Migration
             // Foreign Keys
             $table->foreignId('customer_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('provider_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('service_id')->nullable()->constrained('services')->onDelete('cascade');
+            $table->foreignId('service_id')->nullable()->constrained('services')->onDelete('set null');
 
             // NEW: The missing Booking details causing your crash!
             $table->date('booking_date')->nullable();

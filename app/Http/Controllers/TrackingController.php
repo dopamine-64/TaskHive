@@ -3,6 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\User; 
+use App\Notifications\BookingAcceptedNotification;
+use App\Notifications\BookingCompletedNotification;
+use App\Notifications\BookingDeclinedNotification;
+use App\Notifications\BookingRequestNotification;
+use App\Notifications\BookingAcceptedConfirmation;
+use App\Notifications\BookingCompletedConfirmation;
+
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -37,6 +45,13 @@ class TrackingController extends Controller
         'created_at' => now(),
         'updated_at' => now(),
     ]);
+
+    $tracking = DB::table('trackings')->where('id', $trackingId)->first();
+    $provider = User::find($providerId);
+    if ($provider && $tracking) {
+        $provider->notify(new BookingRequestNotification($tracking));
+    }
+
     return redirect()->route('tracking.live', $trackingId);
 }
 
@@ -80,6 +95,15 @@ class TrackingController extends Controller
             return back()->withErrors([
                 'tracking' => 'This request could not be accepted. It may already be handled.',
             ]);
+        }
+
+        $tracking = DB::table('trackings')->where('id', $id)->first();
+        $customer = $tracking ? User::find($tracking->customer_id) : null;
+        if ($customer) {
+            $customer->notify(new BookingAcceptedNotification());
+        }
+        if ($tracking) {
+            $provider->notify(new BookingAcceptedConfirmation($tracking));
         }
 
         return back()->with('success', 'Job Accepted!');
@@ -130,12 +154,62 @@ class TrackingController extends Controller
     }
 
     public function complete($id) {
-        DB::table('trackings')->where('id', $id)->update(['status' => 'completed', 'updated_at' => now()]);
-        return redirect()->route('provider.show', Auth::id())->with('success', 'Job Completed!');
+        $provider = Auth::user();
+        if (!$provider || $provider->role !== 'provider') {
+            abort(403, 'Only providers can complete jobs.');
+        }
+
+        $job = DB::table('trackings')
+            ->where('id', $id)
+            ->where('provider_id', $provider->id)
+            ->first();
+
+        if (!$job) {
+            abort(404, 'Job not found.');
+        }
+
+        if (($job->payment_status ?? 'pending') !== 'paid') {
+            return back()->with('error', 'Cannot finish this job before customer payment is completed.');
+        }
+
+        if (!in_array($job->status, ['accepted', 'in_progress'], true)) {
+            return back()->with('error', 'Only active jobs can be marked as completed.');
+        }
+
+        $updated = DB::table('trackings')
+            ->where('id', $id)
+            ->where('provider_id', $provider->id)
+            ->whereIn('status', ['accepted', 'in_progress'])
+            ->where('payment_status', 'paid')
+            ->update([
+                'status' => 'completed',
+                'updated_at' => now(),
+            ]);
+
+        if (!$updated) {
+            return back()->with('error', 'This job could not be completed. Please refresh and try again.');
+        }
+
+        $customer = User::find($job->customer_id);
+        if ($customer) {
+            $customer->notify(new BookingCompletedNotification());
+        }
+
+        $updatedTracking = DB::table('trackings')->where('id', $id)->first();
+        $provider->notify(new BookingCompletedConfirmation($updatedTracking ?? $job));
+
+        return redirect()->route('provider.show', $provider->id)->with('success', 'Job Completed!');
     }
 
     public function decline($id) {
         DB::table('trackings')->where('id', $id)->update(['status' => 'declined', 'updated_at' => now()]);
+
+        $tracking = DB::table('trackings')->where('id', $id)->first();
+        $customer = $tracking ? User::find($tracking->customer_id) : null;
+        if ($customer) {
+            $customer->notify(new BookingDeclinedNotification());
+        }
+
         return back()->with('success', 'Job Declined.');
     }
 }

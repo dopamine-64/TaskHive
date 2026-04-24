@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\ProviderProfile;
+use App\Notifications\WelcomeNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class AuthController extends Controller
 {
@@ -55,6 +57,11 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
+        try {
+            $user->notify(new WelcomeNotification($user));
+        } catch (TransportExceptionInterface $e) {
+            report($e);
+        }
 
         return redirect()->route('dashboard');
     }

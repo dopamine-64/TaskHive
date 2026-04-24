@@ -65,11 +65,15 @@
                         <div class="row g-2 mb-3 bg-light rounded-3 p-3 text-center">
                             <div class="col-4 border-end">
                                 <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">📅 Date</small>
-                                <span class="fw-semibold text-dark" style="font-size: 13px;">{{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}</span>
+                                <span class="fw-semibold text-dark" style="font-size: 13px;">
+                                    {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') : 'Not set' }}
+                                </span>
                             </div>
                             <div class="col-4 border-end">
                                 <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">⏰ Time</small>
-                                <span class="fw-semibold text-dark" style="font-size: 13px;">{{ date('h:i A', strtotime($booking->booking_time)) }}</span>
+                                <span class="fw-semibold text-dark" style="font-size: 13px;">
+                                    {{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('h:i A') : 'Not set' }}
+                                </span>
                             </div>
                             <div class="col-4">
                                 <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">💰 Price</small>
@@ -99,7 +103,8 @@
                             
                         @elseif($booking->status == 'accepted')
                             {{-- Payment Logic with Invoice Button --}}
-                            @if($booking->payment_status == 'paid')
+                            @php($paymentStatus = $booking->payment_status ?? 'pending')
+                            @if($paymentStatus === 'paid')
                                 <div class="alert alert-success mt-2 py-3 text-center rounded-4 mb-0 border-0 shadow-sm">
                                     <h6 class="mb-2 fw-bold text-success"><i class="fas fa-check-circle me-1"></i> Payment Completed!</h6>
                                     <a href="{{ route('invoice.show', $booking->id) }}" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">
@@ -136,7 +141,11 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h6 class="text-dark mb-0">{{ $booking->service_title ?? 'Service #'.$booking->service_id }}</h6>
-                                <small class="text-muted">{{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }} • {{ date('h:i A', strtotime($booking->booking_time)) }}</small>
+                                <small class="text-muted">
+                                    {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') : 'Not set' }}
+                                    •
+                                    {{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('h:i A') : 'Not set' }}
+                                </small>
                             </div>
                             <span class="badge 
                                 @if($booking->status == 'completed') bg-success
