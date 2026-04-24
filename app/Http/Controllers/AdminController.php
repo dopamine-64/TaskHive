@@ -169,6 +169,46 @@ class AdminController extends Controller
         return back()->with('success', 'Service deleted.');
     }
 
+    // ---------- COMPLAINTS MANAGEMENT ----------
+    public function manageComplaints()
+    {
+        $complaints = \App\Models\Complaint::with('user')->latest()->paginate(15);
+        return view('admin.complaints', compact('complaints'));
+    }
+
+    public function showComplaint($id)
+    {
+        $complaint = \App\Models\Complaint::with('user','resolver')->findOrFail($id);
+        return view('admin.complaint_show', compact('complaint'));
+    }
+
+    public function updateComplaint(Request $request, $id)
+    {
+        $complaint = \App\Models\Complaint::findOrFail($id);
+        $request->validate([
+            'status' => 'required|string',
+            'admin_notes' => 'nullable|string'
+        ]);
+
+        $complaint->status = $request->status;
+        $complaint->admin_notes = $request->admin_notes;
+        if ($request->status === 'resolved') {
+            $complaint->resolved_by = auth()->id();
+        }
+        $complaint->save();
+
+        $this->logActivity('Updated complaint', 'complaint', $id, "Status set to {$complaint->status}");
+        return back()->with('success', 'Complaint updated.');
+    }
+
+    public function deleteComplaint($id)
+    {
+        $complaint = \App\Models\Complaint::findOrFail($id);
+        $complaint->delete();
+        $this->logActivity('Deleted complaint', 'complaint', $id, "Complaint deleted");
+        return back()->with('success', 'Complaint removed.');
+    }
+
     // ---------- SYSTEM ACTIVITIES ----------
     public function activities()
     {
