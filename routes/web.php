@@ -16,7 +16,7 @@ use App\Http\Controllers\AdminController;
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    
+    Route::get('/reports', [App\Http\Controllers\AdminController::class, 'reports'])->name('admin.reports');
     // User Management
     Route::get('/users', [AdminController::class, 'manageUsers'])->name('admin.users');
     Route::get('/user/ban/{id}', [AdminController::class, 'banUser'])->name('admin.user.ban');

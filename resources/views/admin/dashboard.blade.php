@@ -5,11 +5,16 @@
 @section('content')
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="text-white fw-bold mb-0">Control Panel</h1>
-            <p class="text-white-50">Welcome back, {{ Auth::user()->name }}.</p>
-        </div>
+    <div>
+        <h2 class="text-white fw-bold mb-0">Control Panel</h2>
+        <p class="text-white-50">Welcome back, System Admin.</p>
     </div>
+    <div>
+        <a href="{{ route('admin.reports') }}" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm">
+            📊 View Reports & Analytics
+        </a>
+    </div>
+</div>
 
     {{-- 📊 Statistical Cards --}}
     <div class="row g-4 mb-5">
