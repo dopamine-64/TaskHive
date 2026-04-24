@@ -35,8 +35,12 @@ class AdminController extends Controller
         $pendingRequests = Tracking::where('status', 'requested')->count();
         $totalServices = Service::count();
 
+        // Complaints overview for admin dashboard
+        $complaintsCount = \App\Models\Complaint::count();
+        $recentComplaints = \App\Models\Complaint::with(['user'])->latest()->take(5)->get();
+
         return view('admin.dashboard', compact(
-            'totalUsers', 'totalProviders', 'totalBookings', 'revenue', 'pendingRequests', 'totalServices'
+            'totalUsers', 'totalProviders', 'totalBookings', 'revenue', 'pendingRequests', 'totalServices', 'complaintsCount', 'recentComplaints'
         ));
     }
 

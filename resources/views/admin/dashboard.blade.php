@@ -83,5 +83,60 @@
             </div>
         </div>
     </div>
+
+    {{-- Complaints Summary --}}
+    <div class="row g-4 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center">
+                        <div class="me-3">
+                            <i class="fas fa-exclamation-circle fa-2x text-danger"></i>
+                        </div>
+                        <div>
+                            <p class="text-muted text-uppercase fw-bold small mb-1">Complaints</p>
+                            <h3 class="fw-bold text-dark mb-0">{{ $complaintsCount ?? 0 }}</h3>
+                            <small class="text-muted">Recent complaints submitted by customers</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
+                <div class="card-body p-4">
+                    <h5 class="mb-3">Recent Complaints</h5>
+                    @if(isset($recentComplaints) && $recentComplaints->count())
+                        <ul class="list-group list-group-flush">
+                            @foreach($recentComplaints as $rc)
+                                @php
+                                    $providerName = '—';
+                                    if ($rc->target_type === 'provider') {
+                                        $providerName = \App\Models\User::find($rc->target_id)?->name ?? '—';
+                                    } elseif ($rc->target_type === 'booking') {
+                                        $booking = \App\Models\Tracking::with('provider')->find($rc->target_id);
+                                        $providerName = $booking?->provider?->name ?? '—';
+                                    }
+                                @endphp
+                                <li class="list-group-item d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <div class="fw-bold">{{ $providerName }}</div>
+                                        <div class="text-muted small">From: {{ $rc->user->name ?? '—' }} — {{ ucfirst($rc->status) }}</div>
+                                        <div class="text-muted small">{{ Str::limit($rc->description, 80) }}</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <a href="{{ route('admin.complaint.show', $rc->id) }}" class="btn btn-sm btn-primary">View</a>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-muted">No recent complaints.</p>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
