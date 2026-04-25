@@ -11,6 +11,7 @@ use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\WalletController;
 
 // ==================== ADMIN ROUTES ====================
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
@@ -53,11 +54,29 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
 Route::get('/', [AuthController::class, 'showAuth']);
 
 // ==================== GUEST ONLY ROUTES ====================
+
+Route::post('/wallet/pay/{bookingId}', [WalletPaymentController::class, 'pay'])->name('wallet.pay');
+// routes/web.php - TEMPORARY for testing
+
+Route::post('/wallet/pay/{bookingId}', [WalletController::class, 'payWithWallet'])->name('wallet.pay');
+
+Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('booking.my');
+// --- PUBLIC ROUTES ---
+Route::get('/', [AuthController::class, 'showAuth']);
+
+// ========== OTP ROUTES (MOVE THESE HERE) ==========
+// These need to be public so the redirect doesn't trigger middleware loops
+Route::get('/otp/{type}/{phone}', [AuthController::class, 'showOtpForm'])->name('otp.form');
+Route::post('/otp/verify', [AuthController::class, 'verifyOtp'])->name('otp.verify');
+Route::post('/otp/resend', [AuthController::class, 'resendOtp'])->name('otp.resend');
+
+// --- GUEST ONLY ROUTES ---
 Route::middleware('guest')->group(function () {
     Route::get('/login', [AuthController::class, 'showAuth'])->name('login');
     Route::get('/register', [AuthController::class, 'showAuth'])->name('register');
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
+    // Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
 });
 
 // ==================== PAYMENT CALLBACK ROUTES (PUBLIC) ====================
@@ -70,7 +89,9 @@ Route::middleware('auth')->group(function () {
     
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
+    Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+   
+   
     // Services Management
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
@@ -118,4 +139,5 @@ Route::middleware('auth')->group(function () {
     Route::get('/complaints/create', [\App\Http\Controllers\ComplaintController::class, 'create'])->name('complaints.create');
     Route::post('/complaints', [\App\Http\Controllers\ComplaintController::class, 'store'])->name('complaints.store');
 
+    Route::get('/my-account', [TrackingController::class, 'customerProfile']);
 });

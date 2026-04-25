@@ -11,7 +11,26 @@
                 <h1 style="color: #1670d0;">Create Account</h1>
                 
                 <input type="text" class="form-control" name="name" placeholder="Full Name" value="{{ old('name') }}" required />
+                
                 <input type="email" class="form-control" name="email" placeholder="Email" value="{{ old('email') }}" required />
+                
+                <!-- Improved Phone Field with Validation -->
+                <div class="w-100 mb-2">
+                    <input type="tel" 
+                           class="form-control @error('phone') is-invalid @enderror" 
+                           name="phone" 
+                           placeholder="Phone Number (01XXXXXXXXX)" 
+                           value="{{ old('phone') }}" 
+                           maxlength="11"
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '').substring(0, 11);"
+                           required />
+                    
+                    @error('phone')
+                        <div class="text-danger text-start ps-2" style="font-size: 11px; margin-top: -10px; margin-bottom: 10px;">
+                            {{ $message }}
+                        </div>
+                    @enderror
+                </div>
                 
                 <div class="d-flex gap-2 w-100">
                     <input type="password" class="form-control" name="password" placeholder="Password" required />
