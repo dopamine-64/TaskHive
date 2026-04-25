@@ -109,16 +109,14 @@
                         {{-- ACTION BUTTONS --}}
                         @if($booking->status == 'requested')
                             <div class="d-flex gap-2">
-                                <a href="{{ route('booking.reschedule.form', $booking->id) }}" class="btn btn-warning flex-fill rounded-pill fw-bold small py-2" style="font-size: 13px;">
-                                    <i class="fas fa-calendar-alt me-1"></i> Reschedule
-                                </a>
+                                <a href="{{ route('booking.reschedule.form', $booking->id) }}" class="btn btn-warning flex-fill rounded-pill fw-bold small py-2">Reschedule</a>
                                 <form action="{{ route('booking.cancel', $booking->id) }}" method="POST" class="flex-fill">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold small py-2" style="font-size: 13px;" onclick="return confirm('Cancel this booking?')">
-                                        <i class="fas fa-times me-1"></i> Cancel
-                                    </button>
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="btn btn-danger w-100 rounded-pill fw-bold small py-2" onclick="return confirm('Cancel this booking?')">Cancel</button>
                                 </form>
+                                <a href="{{ route('tracking.live', $booking->id) }}" class="btn btn-info flex-fill rounded-pill fw-bold small py-2 d-flex align-items-center justify-content-center">
+                                    <i class="fas fa-map-marker-alt me-1"></i> Live Map
+                                </a>
                             </div>
                             
                         @elseif($booking->status == 'accepted')
@@ -127,22 +125,17 @@
                             @if($paymentStatus === 'paid')
                                 <div class="alert alert-success mt-2 py-3 text-center rounded-4 mb-0 border-0 shadow-sm">
                                     <h6 class="mb-2 fw-bold text-success"><i class="fas fa-check-circle me-1"></i> Payment Completed!</h6>
-                                    <a href="{{ route('invoice.show', $booking->id) }}" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">
-                                        <i class="fas fa-file-invoice-dollar me-1"></i> View Invoice
-                                    </a>
-                                    <a href="{{ route('complaints.create', ['target_type' => 'booking', 'target_id' => $booking->id]) }}" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold ms-2">
-                                        <i class="fas fa-exclamation-triangle me-1"></i> Complain
-                                    </a>
+                                    <a href="{{ route('invoice.show', $booking->id) }}" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">View Invoice</a>
+                                    <a href="{{ route('complaints.create', ['target_type' => 'booking', 'target_id' => $booking->id]) }}" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold ms-2">Complain</a>
+                                    {{-- Live Map button --}}
+                                    <a href="{{ route('tracking.live', $booking->id) }}" class="btn btn-sm btn-info rounded-pill px-4 fw-bold ms-2">
+                                        <i class="fas fa-map-marker-alt me-1"></i> Live Map
                                     </a>
                                 </div>
                             @else
                                 <div class="d-flex flex-column gap-2">
-                                    <div class="text-success small text-center fw-bold mb-1">
-                                        Provider accepted! Complete payment to confirm.
-                                    </div>
-                                    <a href="{{ route('payment.initiate', $booking->id) }}" class="btn btn-success w-100 rounded-pill fw-bold py-2 shadow-sm" style="font-size: 14px;">
-                                        <i class="fas fa-credit-card me-1"></i> Pay ৳{{ number_format($booking->amount ?? 0, 0) }} Now
-                                    </a>
+                                    <div class="text-success small text-center fw-bold mb-1">Provider accepted! Complete payment to confirm.</div>
+                                    <a href="{{ route('payment.initiate', $booking->id) }}" class="btn btn-success w-100 rounded-pill fw-bold py-2 shadow-sm">Pay Now</a>
                                 </div>
                             @endif
                         @endif
