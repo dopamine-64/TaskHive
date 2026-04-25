@@ -17,12 +17,10 @@
     <div class="card mb-4 border-0" style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 20px;">
         <div class="card-body p-4 text-center">
             <p class="text-white-50 mb-1">Current Balance</p>
-            @if(auth()->user()->role == 'user')
-                <h2 class="text-warning mb-0 fw-bold">{{ auth()->user()->reward_points ?? 0 }} <small class="text-white-50" style="font-size: 14px;">Points</small></h2>
-                <p class="text-white-50 mt-2 small">100 points = ৳1 discount</p>
-            @else
-                <h2 class="text-warning mb-0 fw-bold">৳ {{ number_format(auth()->user()->wallet_balance ?? 0, 2) }}</h2>
-            @endif
+            <h2 class="text-warning mb-0 fw-bold">
+                ৳ {{ number_format($currentBalance ?? 0, 2) }}
+            </h2>
+            <p class="text-white-50 mt-2 small">Real money balance in Taka (BDT)</p>
         </div>
     </div>
 
@@ -39,7 +37,7 @@
                             <tr>
                                 <th>Date</th>
                                 <th>Description</th>
-                                <th class="text-end">Amount</th>
+                                <th class="text-end">Amount (৳)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -47,18 +45,15 @@
                             <tr>
                                 <td>{{ $transaction->created_at->format('M d, Y') }}</td>
                                 <td>{{ $transaction->description }}</td>
-                                <td class="text-end text-success">
-                                    @if(auth()->user()->role == 'user')
-                                        +{{ $transaction->points }} pts
-                                    @else
-                                        +৳ {{ number_format($transaction->amount, 2) }}
-                                    @endif
-                                                                </td>
+                                <td class="text-end {{ $transaction->amount > 0 ? 'text-success' : 'text-danger' }}">
+                                    {{ $transaction->amount > 0 ? '+' : '' }}৳ {{ number_format(abs($transaction->amount), 2) }}
+                                </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+                {{ $transactions->links() }}
             @else
                 <p class="text-center text-white-50 py-4">No transactions yet</p>
             @endif

@@ -127,19 +127,14 @@
 
         <div class="d-flex align-items-center gap-3">
             @auth
-                <!-- Wallet Badge -->
-                <a href="{{ route('wallet.index') }}" class="wallet-badge d-none d-lg-flex">
-                    <i class="fas fa-wallet"></i> 
-                    <span>My Wallet</span>
-                    <small style="opacity: 0.7; font-size: 0.7rem; margin-left: 4px; border-left: 1px solid rgba(254, 184, 62, 0.4); padding-left: 8px;">
-                        @if(Auth::user()->role == 'user')
-                            {{ Auth::user()->reward_points ?? 0 }} pts
-                        @else
-                            ৳ {{ number_format(Auth::user()->wallet_balance ?? 0, 2) }}
-                        @endif
-                    </small>
-                </a>
-
+                <!-- Wallet Badge - Only for customers -->
+                @if(Auth::user()->role == 'user')
+                    <a href="{{ route('wallet.index') }}" class="wallet-badge d-none d-lg-flex">
+                        <i class="fas fa-wallet"></i> 
+                        <span>My Wallet</span>
+                    </a>
+                @endif
+                
                 <span class="d-none d-md-inline" style="font-size: 0.8rem;">Hello, {{ Auth::user()->name }}</span>
                 <form action="{{ route('logout') }}" method="POST" class="m-0">
                     @csrf
@@ -176,4 +171,4 @@
     }
     </script>
 </body>
-</html>d
+</html>

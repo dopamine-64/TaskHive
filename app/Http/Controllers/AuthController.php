@@ -146,33 +146,40 @@ class AuthController extends Controller
                 $user->phone = $data['phone'];
                 $user->password = bcrypt($data['password']);
                 $user->role = $data['role'];
-                $user->reward_points = ($data['role'] == 'user') ? 500 : 0;
-                $user->wallet_balance = ($data['role'] == 'provider') ? 500 : 0;
+                
+                // FIXED: Give 2000 Taka wallet balance for BOTH customer and provider
+                $user->wallet_balance = 2000;
                 $user->save();
+
+                \Log::info("User created - ID: {$user->id}, Phone: '{$user->phone}', Wallet Balance: {$user->wallet_balance}");
                 
-                \Log::info("User created - ID: {$user->id}, Phone: '{$user->phone}'");
-                
+                // Create welcome bonus transaction
                 if ($data['role'] == 'user') {
                     WalletTransaction::create([
                         'user_id' => $user->id,
-                        'points' => 500,
+                        'amount' => 2000,
                         'type' => 'deposit',
-                        'description' => 'Welcome bonus - 500 reward points'
+                        'description' => 'Welcome bonus - 2000 Taka'
                     ]);
                 } else {
                     WalletTransaction::create([
                         'user_id' => $user->id,
-                        'amount' => 500,
+                        'amount' => 2000,
                         'type' => 'deposit',
-                        'description' => 'Welcome bonus - ৳500'
+                        'description' => 'Welcome bonus - 2000 Taka'
                     ]);
+                }
+                
+                // Create provider profile if needed
+                if ($data['role'] === 'provider') {
+                    ProviderProfile::create(['user_id' => $user->id]);
                 }
                 
                 Auth::login($user);
                 session()->forget('register_data');
                 Otp::where('phone', $request->phone)->where('type', 'register')->delete();
                 
-                return redirect()->route('dashboard')->with('success', 'Registration successful!');
+                return redirect()->route('dashboard')->with('success', 'Registration successful! Welcome bonus of 2000 Taka added!');
             }
             
             if ($request->type == 'booking') {

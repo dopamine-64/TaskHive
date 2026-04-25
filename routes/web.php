@@ -12,12 +12,12 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\WalletController;
 
+Route::post('/wallet/pay/{bookingId}', [WalletPaymentController::class, 'pay'])->name('wallet.pay');
 // routes/web.php - TEMPORARY for testing
-Route::get('/test-add-points', function () {
-    $wallet = new \App\Http\Controllers\WalletController();
-    $wallet->addPoints(1, 100, null, 'Test points');
-    return 'Points added! Check your wallet.';
-});
+
+Route::post('/wallet/pay/{bookingId}', [WalletController::class, 'payWithWallet'])->name('wallet.pay');
+
+Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('booking.my');
 // --- PUBLIC ROUTES ---
 Route::get('/', [AuthController::class, 'showAuth']);
 
