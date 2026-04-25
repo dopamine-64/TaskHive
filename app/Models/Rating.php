@@ -12,6 +12,7 @@ class Rating extends Model
     protected $fillable = [
         'provider_id',
         'reviewer_id',
+        'tracking_id',
         'rating',
         'review',
     ];
@@ -29,5 +30,10 @@ class Rating extends Model
     public function providerProfile()
     {
         return $this->belongsTo(ProviderProfile::class, 'provider_id', 'user_id');
+    }
+
+    public function tracking()
+    {
+        return $this->belongsTo(Tracking::class);
     }
 }
