@@ -8,17 +8,17 @@ return new class extends Migration
 {
     public function up()
     {
-        if (!Schema::hasColumn('users', 'reward_points')) {
-            Schema::table('users', function (Blueprint $table) {
-                $table->integer('reward_points')->default(0);
-            });
-        }
+        Schema::table('users', function (Blueprint $table) {
+            if (!Schema::hasColumn('users', 'wallet_balance')) {
+                $table->decimal('wallet_balance', 10, 2)->default(2000.00);
+            }
+        });
     }
 
     public function down()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('reward_points');
+            $table->dropColumn('wallet_balance');
         });
     }
 };
