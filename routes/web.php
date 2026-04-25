@@ -16,7 +16,7 @@ use App\Http\Controllers\AdminController;
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     // Dashboard
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
-    
+    Route::get('/reports', [App\Http\Controllers\AdminController::class, 'reports'])->name('admin.reports');
     // User Management
     Route::get('/users', [AdminController::class, 'manageUsers'])->name('admin.users');
     Route::get('/user/ban/{id}', [AdminController::class, 'banUser'])->name('admin.user.ban');
@@ -39,6 +39,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
     Route::put('/service/update/{id}', [AdminController::class, 'updateService'])->name('admin.service.update');
     Route::delete('/service/delete/{id}', [AdminController::class, 'deleteService'])->name('admin.service.delete');
     
+    // Complaint Management
+    Route::get('/complaints', [AdminController::class, 'manageComplaints'])->name('admin.complaints');
+    Route::get('/complaint/{id}', [AdminController::class, 'showComplaint'])->name('admin.complaint.show');
+    Route::put('/complaint/{id}/update', [AdminController::class, 'updateComplaint'])->name('admin.complaint.update');
+    Route::delete('/complaint/{id}', [AdminController::class, 'deleteComplaint'])->name('admin.complaint.delete');
+
     // System Activities
     Route::get('/activities', [AdminController::class, 'activities'])->name('admin.activities');
 });
@@ -107,4 +113,9 @@ Route::middleware('auth')->group(function () {
     // Customer Profile
     Route::get('/my-profile', [TrackingController::class, 'customerProfile'])->name('customer.profile');
     Route::get('/my-account', [TrackingController::class, 'customerProfile']); // Alias
+
+    // Complaints
+    Route::get('/complaints/create', [\App\Http\Controllers\ComplaintController::class, 'create'])->name('complaints.create');
+    Route::post('/complaints', [\App\Http\Controllers\ComplaintController::class, 'store'])->name('complaints.store');
+
 });
