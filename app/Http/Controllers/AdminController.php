@@ -31,12 +31,36 @@ class AdminController extends Controller
         $totalUsers = User::where('role', 'user')->count();
         $totalProviders = User::where('role', 'provider')->count();
         $totalBookings = Tracking::count();
-        $revenue = Tracking::where('status', 'completed')->sum('amount');
+        
+        $revenue = Tracking::where('payment_status', 'paid')->sum('amount');
+        
         $pendingRequests = Tracking::where('status', 'requested')->count();
         $totalServices = Service::count();
 
+        // Monthly revenue (paid bookings)
+        $monthlyRevenue = [];
+        for ($i = 1; $i <= 12; $i++) {
+            $monthlyRevenue[] = Tracking::whereYear('created_at', date('Y'))
+                ->whereMonth('created_at', $i)
+                ->where('payment_status', 'paid')
+                ->sum('amount');
+        }
+
+        // Booking status counts
+        $statusLabels = ['Requested', 'Accepted', 'Completed', 'Cancelled', 'Declined', 'In Progress'];
+        $statusData = [
+            Tracking::where('status', 'requested')->count(),
+            Tracking::where('status', 'accepted')->count(),
+            Tracking::where('status', 'completed')->count(),
+            Tracking::where('status', 'cancelled')->count(),
+            Tracking::where('status', 'declined')->count(),
+            Tracking::where('status', 'in_progress')->count(),
+        ];
+
         return view('admin.dashboard', compact(
-            'totalUsers', 'totalProviders', 'totalBookings', 'revenue', 'pendingRequests', 'totalServices'
+            'totalUsers', 'totalProviders', 'totalBookings', 'revenue', 
+            'pendingRequests', 'totalServices', 'monthlyRevenue', 
+            'statusLabels', 'statusData'
         ));
     }
 

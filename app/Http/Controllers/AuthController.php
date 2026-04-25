@@ -22,12 +22,20 @@ class AuthController extends Controller
             'password' => ['required'],
         ]);
 
+        // Attempt login
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            
             $user = Auth::user();
             
-            // Redirect admin to admin dashboard
+            // Check if user is banned
+            if ($user->is_banned) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your account has been banned. Please contact support.',
+                ])->onlyInput('email');
+            }
+            
+            $request->session()->regenerate();
+            
             if ($user->role === 'admin') {
                 return redirect()->route('admin.dashboard');
             }
