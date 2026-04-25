@@ -8,8 +8,11 @@ use App\Models\Tracking;
 use App\Models\ProviderProfile;
 use App\Models\Service;
 use App\Models\ActivityLog;
+use App\Models\Transaction;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class AdminController extends Controller
 {
@@ -57,10 +60,14 @@ class AdminController extends Controller
             Tracking::where('status', 'in_progress')->count(),
         ];
 
+        // Complaints overview for admin dashboard
+        $complaintsCount = \App\Models\Complaint::count();
+        $recentComplaints = \App\Models\Complaint::with(['user'])->latest()->take(5)->get();
+        
         return view('admin.dashboard', compact(
             'totalUsers', 'totalProviders', 'totalBookings', 'revenue', 
             'pendingRequests', 'totalServices', 'monthlyRevenue', 
-            'statusLabels', 'statusData'
+            'statusLabels', 'statusData', 'complaintsCount', 'recentComplaints'
         ));
     }
 
@@ -191,6 +198,89 @@ class AdminController extends Controller
         $service->delete();
         $this->logActivity('Deleted service', 'service', $id, "Deleted service '{$title}'");
         return back()->with('success', 'Service deleted.');
+    }
+
+    // ---------- COMPLAINTS MANAGEMENT ----------
+    public function manageComplaints()
+    {
+        $complaints = \App\Models\Complaint::with('user')->latest()->paginate(15);
+        return view('admin.complaints', compact('complaints'));
+    }
+
+    public function showComplaint($id)
+    {
+        $complaint = \App\Models\Complaint::with('user','resolver')->findOrFail($id);
+        return view('admin.complaint_show', compact('complaint'));
+    }
+
+    public function updateComplaint(Request $request, $id)
+    {
+        $complaint = \App\Models\Complaint::findOrFail($id);
+        $request->validate([
+            'status' => 'required|string',
+            'admin_notes' => 'nullable|string'
+        ]);
+
+        $complaint->status = $request->status;
+        $complaint->admin_notes = $request->admin_notes;
+        if ($request->status === 'resolved') {
+            $complaint->resolved_by = auth()->id();
+        }
+        $complaint->save();
+
+        $this->logActivity('Updated complaint', 'complaint', $id, "Status set to {$complaint->status}");
+        return back()->with('success', 'Complaint updated.');
+    }
+
+    public function deleteComplaint($id)
+    {
+        $complaint = \App\Models\Complaint::findOrFail($id);
+        $complaint->delete();
+        $this->logActivity('Deleted complaint', 'complaint', $id, "Complaint deleted");
+        return back()->with('success', 'Complaint removed.');
+    }
+
+    // ---------- REPORTS & ANALYTICS ----------
+    public function reports()
+    {
+        // 1. Revenue Trends (Grouped by month for the last 6 months)
+        $revenueData = Transaction::select(
+            DB::raw('SUM(amount) as total'),
+            DB::raw("DATE_FORMAT(created_at, '%M %Y') as month")
+        )
+        ->where('created_at', '>=', Carbon::now()->subMonths(6))
+        ->groupBy('month')
+        ->orderByRaw('MIN(created_at)') // Orders chronologically
+        ->get();
+
+        $revenueLabels = $revenueData->pluck('month');
+        $revenueValues = $revenueData->pluck('total');
+
+        // 2. Booking Statistics (Count by status)
+        $bookingStats = Tracking::select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        // 3. Top Performing Providers (By completed services)
+        $topProviders = Tracking::with('provider')
+            ->select('provider_id', DB::raw('count(*) as total_completed'))
+            ->where('status', 'completed')
+            ->groupBy('provider_id')
+            ->orderByDesc('total_completed')
+            ->take(5)
+            ->get();
+
+        // 4. Service Comparisons (Most requested services)
+        $serviceStats = Tracking::with('service')
+            ->select('service_id', DB::raw('count(*) as total_requests'))
+            ->groupBy('service_id')
+            ->orderByDesc('total_requests')
+            ->take(5)
+            ->get();
+
+        return view('admin.reports', compact(
+            'revenueLabels', 'revenueValues', 'bookingStats', 'topProviders', 'serviceStats'
+        ));
     }
 
     // ---------- SYSTEM ACTIVITIES ----------

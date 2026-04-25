@@ -105,6 +105,10 @@
                                     <a href="{{ route('invoice.show', $booking->id) }}" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">
                                         <i class="fas fa-file-invoice-dollar me-1"></i> View Invoice
                                     </a>
+                                    <a href="{{ route('complaints.create', ['target_type' => 'booking', 'target_id' => $booking->id]) }}" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold ms-2">
+                                        <i class="fas fa-exclamation-triangle me-1"></i> Complain
+                                    </a>
+                                    </a>
                                 </div>
                             @else
                                 <div class="d-flex flex-column gap-2">
