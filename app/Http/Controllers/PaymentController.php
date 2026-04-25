@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Transaction;
 use App\Models\Tracking;
+use App\Models\User;
+use App\Notifications\PaymentConfirmationNotification;
+use App\Notifications\PaymentReceivedNotification;
 use Illuminate\Support\Facades\Auth;
 
 class PaymentController extends Controller
@@ -99,6 +102,16 @@ class PaymentController extends Controller
             
             if ($booking) {
                 $booking->update(['payment_status' => 'paid']);
+
+                $customer = User::find($booking->customer_id);
+                if ($customer) {
+                    $customer->notify(new PaymentConfirmationNotification());
+                }
+
+                $provider = User::find($booking->provider_id);
+                if ($provider) {
+                    $provider->notify(new PaymentReceivedNotification($booking, $transaction->amount));
+                }
             }
 
             return redirect()->route('customer.profile')->with('success', 'Payment Successful! You can now view your invoice.');

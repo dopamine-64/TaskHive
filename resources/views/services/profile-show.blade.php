@@ -264,10 +264,16 @@
                                                     </a>
                                                 @endif
 
-                                                <form action="{{ route('tracking.complete', $job->id) }}" method="POST" class="m-0">
-                                                    @csrf
-                                                    <button type="submit" class="btn btn-finish btn-sm">Finish Job</button>
-                                                </form>
+                                                @if($job->payment_status == 'paid')
+                                                    <form action="{{ route('tracking.complete', $job->id) }}" method="POST" class="m-0">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-finish btn-sm">Finish Job</button>
+                                                    </form>
+                                                @else
+                                                    <span class="badge bg-secondary bg-opacity-50 border border-light-subtle text-light d-flex align-items-center px-3">
+                                                        Waiting for payment
+                                                    </span>
+                                                @endif
                                             </div>
                                         </td>
                                     </tr>
