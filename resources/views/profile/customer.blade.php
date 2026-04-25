@@ -55,7 +55,7 @@
 
     {{-- 📋 ACTIVE BOOKINGS --}}
     @if($activeBookings->count() > 0)
-        <h5 class="text-white-50 text-uppercase small fw-bold mb-3" style="letter-spacing: 1px;">📋 Active Requests</h5>
+        <h5 class="text-white-50 text-uppercase small fw-bold mb-3" style="letter-spacing: 1px;">Active Requests</h5>
         <div class="row">
             @foreach($activeBookings as $booking)
             <div class="col-md-6 mb-4">
@@ -84,25 +84,21 @@
                         {{-- Date, Time, AND Price --}}
                         <div class="row g-2 mb-3 bg-light rounded-3 p-3 text-center">
                             <div class="col-4 border-end">
-                                <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">📅 Date</small>
-                                <span class="fw-semibold text-dark" style="font-size: 13px;">
-                                    {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') : 'Not set' }}
-                                </span>
+                                <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">Date</small>
+                                <span class="fw-semibold text-dark" style="font-size: 13px;">{{ \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') }}</span>
                             </div>
                             <div class="col-4 border-end">
-                                <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">⏰ Time</small>
-                                <span class="fw-semibold text-dark" style="font-size: 13px;">
-                                    {{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('h:i A') : 'Not set' }}
-                                </span>
+                                <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">Time</small>
+                                <span class="fw-semibold text-dark" style="font-size: 13px;">{{ date('h:i A', strtotime($booking->booking_time)) }}</span>
                             </div>
                             <div class="col-4">
-                                <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">💰 Price</small>
+                                <small class="text-muted d-block small text-uppercase fw-bold" style="font-size: 10px;">Price</small>
                                 <span class="fw-bold text-success" style="font-size: 14px;">৳{{ number_format($booking->amount ?? 0, 0) }}</span>
                             </div>
                         </div>
 
                         <div class="mb-4">
-                            <small class="text-muted d-block small text-uppercase fw-bold mb-1" style="font-size: 10px;">📍 Location</small>
+                            <small class="text-muted d-block small text-uppercase fw-bold mb-1" style="font-size: 10px;">Location</small>
                             <p class="text-dark small mb-0"><i class="fas fa-map-marker-alt text-danger me-1"></i> {{ $booking->address }}</p>
                         </div>
 
@@ -120,9 +116,8 @@
                             </div>
                             
                         @elseif($booking->status == 'accepted')
-                            {{-- Payment Logic with Invoice Button --}}
-                            @php($paymentStatus = $booking->payment_status ?? 'pending')
-                            @if($paymentStatus === 'paid')
+                            {{-- Payment Logic with TWO OPTIONS --}}
+                            @if($booking->payment_status == 'paid')
                                 <div class="alert alert-success mt-2 py-3 text-center rounded-4 mb-0 border-0 shadow-sm">
                                     <h6 class="mb-2 fw-bold text-success"><i class="fas fa-check-circle me-1"></i> Payment Completed!</h6>
                                     <a href="{{ route('invoice.show', $booking->id) }}" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">View Invoice</a>
@@ -133,9 +128,23 @@
                                     </a>
                                 </div>
                             @else
-                                <div class="d-flex flex-column gap-2">
-                                    <div class="text-success small text-center fw-bold mb-1">Provider accepted! Complete payment to confirm.</div>
-                                    <a href="{{ route('payment.initiate', $booking->id) }}" class="btn btn-success w-100 rounded-pill fw-bold py-2 shadow-sm">Pay Now</a>
+                                <div class="text-success small text-center fw-bold mb-2">
+                                    Provider accepted! Choose payment method:
+                                </div>
+                                <div class="d-flex gap-2">
+                                    {{-- Option 1: Pay Now (SSL Commerz) - Don't change this --}}
+                                    <a href="{{ route('payment.initiate', $booking->id) }}" class="btn btn-primary flex-fill rounded-pill fw-bold small py-2" style="font-size: 13px;">
+                                        <i class="fas fa-credit-card me-1"></i> Pay Online
+                                    </a>
+                                    
+                                    {{-- Option 2: Pay with Wallet --}}
+                                    <form action="{{ route('wallet.pay', $booking->id) }}" method="POST" class="flex-fill">
+                                        @csrf
+                                        <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold small py-2" style="font-size: 13px;" 
+                                            onclick="return confirm('Pay ৳{{ number_format($booking->amount ?? 0, 0) }} from your wallet?')">
+                                            <i class="fas fa-wallet me-1"></i> Pay with Wallet
+                                        </button>
+                                    </form>
                                 </div>
                             @endif
                         @endif
@@ -149,7 +158,7 @@
 
     {{-- 📜 PAST BOOKINGS --}}
     @if($pastBookings->count() > 0)
-        <h5 class="text-white-50 text-uppercase small fw-bold mt-4 mb-3" style="letter-spacing: 1px;">📜 History</h5>
+        <h5 class="text-white-50 text-uppercase small fw-bold mt-4 mb-3" style="letter-spacing: 1px;">History</h5>
         <div class="row">
             @foreach($pastBookings as $booking)
             <div class="col-md-4 mb-3">

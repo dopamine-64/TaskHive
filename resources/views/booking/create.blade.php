@@ -22,7 +22,7 @@
                         <h5 class="fw-bold mb-1">{{ $service->title }}</h5>
                         <p class="text-muted small mb-2">{{ $service->description }}</p>
                         <div class="mt-2">
-                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">💰 {{ number_format($service->price) }} Tk</span>
+                            <span class="badge bg-warning text-dark px-3 py-2 rounded-pill">{{ number_format($service->price) }} Tk</span>
                         </div>
                     </div>
 
@@ -31,13 +31,13 @@
                         <input type="hidden" name="service_id" value="{{ $service->id }}">
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">📅 Date</label>
+                            <label class="form-label fw-semibold">Date</label>
                             <input type="date" name="booking_date" class="form-control rounded-pill" 
                                    min="{{ date('Y-m-d') }}" required>
                         </div>
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">⏰ Time</label>
+                            <label class="form-label fw-semibold"> Time</label>
                             <select name="booking_time" class="form-select rounded-pill" required>
                                 <option value="">Select time</option>
                                 <option value="09:00">09:00 AM</option>
@@ -50,14 +50,14 @@
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">📍 Address</label>
+                            <label class="form-label fw-semibold"> Address</label>
                             <textarea name="address" class="form-control rounded-3" rows="2" 
                                       placeholder="Full address where service is needed" required></textarea>
                         </div>
 
                         <button type="submit" class="btn w-100 py-2 rounded-pill fw-bold" 
                                 style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: white;">
-                            ✅ Confirm Booking
+                            Confirm Booking
                         </button>
                     </form>
                     

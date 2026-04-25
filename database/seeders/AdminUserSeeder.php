@@ -11,12 +11,12 @@ class AdminUserSeeder extends Seeder
     public function run()
     {
         User::updateOrCreate(
-            ['email' => 'admin@yourwebsite.com'], // The admin login email
+            ['email' => 'admin@taskhive.com'], 
             [
                 'name' => 'System Admin',
-                'password' => Hash::make('admin1234'), // The admin password
+                'password' => Hash::make('admin1234'),
                 'role' => 'admin',
-                'latitude' => '23.8103', // Adding this since your DB requires it
+                'latitude' => '23.8103',
                 'longitude' => '90.4125',
             ]
         );

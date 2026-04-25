@@ -25,6 +25,7 @@ class User extends Authenticatable
         'latitude',
         'longitude',
         'is_banned',
+        'wallet_balance', 
     ];
 
     /**

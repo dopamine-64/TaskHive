@@ -73,6 +73,28 @@
             text-decoration: none;
         }
 
+        /* Wallet Badge Styles */
+        .wallet-badge {
+            background: rgba(254, 184, 62, 0.15);
+            border: 1px solid rgba(254, 184, 62, 0.3);
+            color: #feb83e;
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .wallet-badge:hover {
+            background: rgba(254, 184, 62, 0.25);
+            color: #feb83e;
+            transform: translateY(-1px);
+        }
+
         .main-content { flex-grow: 1; display: flex; flex-direction: column; }
     </style>
     @yield('styles')
@@ -142,6 +164,14 @@
                       </ul>
                     </div>
                 @endif
+                <!-- Wallet Badge - Only for customers -->
+                @if(Auth::user()->role == 'user')
+                    <a href="{{ route('wallet.index') }}" class="wallet-badge d-none d-lg-flex">
+                        <i class="fas fa-wallet"></i> 
+                        <span>My Wallet</span>
+                    </a>
+                @endif
+                
                 <span class="d-none d-md-inline" style="font-size: 0.8rem;">Hello, {{ Auth::user()->name }}</span>
                 <form action="{{ route('logout') }}" method="POST" class="m-0">
                     @csrf
