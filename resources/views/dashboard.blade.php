@@ -130,7 +130,11 @@
             </button>
         </div>
     </form>
+        </form>
+    
 
+    
+    <div class="stats-container">
     <div class="stats-container">
         <div class="stat-item"><h3>0+</h3><p>Categories</p></div>
         <div class="stat-item"><h3>0K+</h3><p>Services Booked</p></div>

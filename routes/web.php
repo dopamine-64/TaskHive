@@ -10,9 +10,22 @@ use App\Http\Controllers\RatingController;
 use App\Http\Controllers\TrackingController; 
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\WalletController;
 
+// routes/web.php - TEMPORARY for testing
+Route::get('/test-add-points', function () {
+    $wallet = new \App\Http\Controllers\WalletController();
+    $wallet->addPoints(1, 100, null, 'Test points');
+    return 'Points added! Check your wallet.';
+});
 // --- PUBLIC ROUTES ---
 Route::get('/', [AuthController::class, 'showAuth']);
+
+// ========== OTP ROUTES (MOVE THESE HERE) ==========
+// These need to be public so the redirect doesn't trigger middleware loops
+Route::get('/otp/{type}/{phone}', [AuthController::class, 'showOtpForm'])->name('otp.form');
+Route::post('/otp/verify', [AuthController::class, 'verifyOtp'])->name('otp.verify');
+Route::post('/otp/resend', [AuthController::class, 'resendOtp'])->name('otp.resend');
 
 // --- GUEST ONLY ROUTES ---
 Route::middleware('guest')->group(function () {
@@ -20,22 +33,23 @@ Route::middleware('guest')->group(function () {
     Route::get('/register', [AuthController::class, 'showAuth'])->name('register');
     Route::post('/login', [AuthController::class, 'login']);
     Route::post('/register', [AuthController::class, 'register']);
+    // Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
 });
 
 // ========== PAYMENT CALLBACK ROUTES (MUST BE PUBLIC) ==========
-// These are outside 'auth' because SSLCommerz sends the POST request directly to your server.
-// Our PaymentController will manually log the customer back in using these routes.
 Route::post('/pay/success', [PaymentController::class, 'success'])->name('payment.success');
 Route::post('/pay/fail', [PaymentController::class, 'fail'])->name('payment.fail');
 Route::post('/pay/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
 // ==============================================================
 
-// --- AUTHENTICATED ROUTES ---
+// --- AUTHENTICATED ROUTES (Logged in users only) ---
 Route::middleware('auth')->group(function () {
     
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
+    Route::get('/wallet', [WalletController::class, 'index'])->name('wallet.index');
+   
+   
     // Services Management
     Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
     Route::get('/services/create', [ServiceController::class, 'create'])->name('services.create');
@@ -57,7 +71,6 @@ Route::middleware('auth')->group(function () {
     // ========================================================
 
     // ========== PAYMENT INITIATION & INVOICE ==========
-    // These stay protected because the user must be logged in to click "Pay Now" or "View Invoice"
     Route::get('/pay/{booking_id}', [PaymentController::class, 'initiate'])->name('payment.initiate');
     Route::get('/invoice/{id}', [PaymentController::class, 'invoice'])->name('invoice.show');
     // ==================================================
@@ -80,5 +93,5 @@ Route::middleware('auth')->group(function () {
     
     // Customer Profile
     Route::get('/my-profile', [TrackingController::class, 'customerProfile'])->name('customer.profile');
-    Route::get('/my-account', [TrackingController::class, 'customerProfile']); // Alias route if needed
+    Route::get('/my-account', [TrackingController::class, 'customerProfile']);
 });

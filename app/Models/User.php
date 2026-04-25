@@ -24,6 +24,9 @@ class User extends Authenticatable
         'role',
         'latitude',
         'longitude',
+        'reward_points',      // ← ADD THIS
+        'wallet_balance', 
+
     ];
 
     /**
