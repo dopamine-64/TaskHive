@@ -115,7 +115,7 @@ class WalletController extends Controller
         
         // Check if user has sufficient balance
         if ($user->wallet_balance < $amount) {
-            return redirect()->route('booking.my')->with('error', 'Insufficient wallet balance. Please add money or use other payment method.');
+            return redirect()->route('customer.profile')->with('error', 'Insufficient wallet balance. Please add money or use other payment method.');
         }
         
         // Deduct from wallet
