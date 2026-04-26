@@ -24,12 +24,14 @@
             color: #f59e0b;
         }
     </style>
+    
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-white fw-bold mb-0">My Bookings</h2>
         <a href="{{ url('/services') }}" class="btn btn-sm btn-outline-light rounded-pill px-3">
             <i class="fas fa-plus me-1"></i> New Booking
         </a>
     </div>
+
 
     {{-- Alert Messages --}}
     @if(session('success'))
@@ -66,6 +68,14 @@
                                 <h5 class="fw-bold text-dark mb-1">{{ $booking->service_title ?? 'Service #'.$booking->service_id }}</h5>
                                 <p class="text-muted small mb-0">
                                     <i class="fas fa-user-tie me-1"></i> Provider: {{ $booking->provider_name ?? 'Provider #'.$booking->provider_id }}
+                                    {{-- ✅ Verified Provider Badge --}}
+                                    @php
+                                        $providerRecord = \App\Models\User::with('providerProfile')->find($booking->provider_id);
+                                        $isVerified = $providerRecord && $providerRecord->providerProfile && $providerRecord->providerProfile->is_verified;
+                                    @endphp
+                                    @if($isVerified)
+                                        <i class="fas fa-check-circle text-primary ms-1" data-bs-toggle="tooltip" title="Verified Provider"></i>
+                                    @endif
                                 </p>
                             </div>
                             
@@ -122,7 +132,6 @@
                                     <h6 class="mb-2 fw-bold text-success"><i class="fas fa-check-circle me-1"></i> Payment Completed!</h6>
                                     <a href="{{ route('invoice.show', $booking->id) }}" class="btn btn-sm btn-success rounded-pill px-4 fw-bold">View Invoice</a>
                                     <a href="{{ route('complaints.create', ['target_type' => 'booking', 'target_id' => $booking->id]) }}" class="btn btn-sm btn-danger rounded-pill px-4 fw-bold ms-2">Complain</a>
-                                    {{-- Live Map button --}}
                                     <a href="{{ route('tracking.live', $booking->id) }}" class="btn btn-sm btn-info rounded-pill px-4 fw-bold ms-2">
                                         <i class="fas fa-map-marker-alt me-1"></i> Live Map
                                     </a>
@@ -132,12 +141,9 @@
                                     Provider accepted! Choose payment method:
                                 </div>
                                 <div class="d-flex gap-2">
-                                    {{-- Option 1: Pay Now (SSL Commerz) - Don't change this --}}
                                     <a href="{{ route('payment.initiate', $booking->id) }}" class="btn btn-primary flex-fill rounded-pill fw-bold small py-2" style="font-size: 13px;">
                                         <i class="fas fa-credit-card me-1"></i> Pay Online
                                     </a>
-                                    
-                                    {{-- Option 2: Pay with Wallet --}}
                                     <form action="{{ route('wallet.pay', $booking->id) }}" method="POST" class="flex-fill">
                                         @csrf
                                         <button type="submit" class="btn btn-success w-100 rounded-pill fw-bold small py-2" style="font-size: 13px;" 
@@ -169,11 +175,22 @@
                                 <h6 class="text-dark mb-0">{{ $booking->service_title ?? 'Service #'.$booking->service_id }}</h6>
                                 <small class="text-muted">
                                     {{ $booking->provider_name ?? 'Provider #'.$booking->provider_id }}
+                                    @php
+                                        $providerRecord = \App\Models\User::with('providerProfile')->find($booking->provider_id);
+                                        $isVerified = $providerRecord && $providerRecord->providerProfile && $providerRecord->providerProfile->is_verified;
+                                    @endphp
+                                    @if($isVerified)
+                                        <i class="fas fa-check-circle text-primary ms-1" data-bs-toggle="tooltip" title="Verified Provider"></i>
+                                    @endif
                                     •
                                     {{ $booking->booking_date ? \Carbon\Carbon::parse($booking->booking_date)->format('M d, Y') : 'Not set' }}
                                     •
                                     {{ $booking->booking_time ? \Carbon\Carbon::parse($booking->booking_time)->format('h:i A') : 'Not set' }}
                                 </small>
+                                {{-- Show points earned if completed and points_earned > 0 --}}
+                                @if($booking->status == 'completed' && ($booking->points_earned ?? 0) > 0)
+                                    <br><small class="text-warning"><i class="fas fa-star me-1"></i> +{{ $booking->points_earned }} points earned</small>
+                                @endif
                             </div>
                             <span class="badge 
                                 @if($booking->status == 'completed') bg-success
@@ -282,6 +299,14 @@
                 });
             });
         });
+    });
+</script>
+
+<script>
+    // Initialize Bootstrap tooltips for verified badges
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
     });
 </script>
 @endsection

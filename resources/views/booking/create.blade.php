@@ -26,7 +26,7 @@
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('booking.store') }}">
+                    <form method="POST" action="{{ route('booking.store') }}" id="bookingForm">
                         @csrf
                         <input type="hidden" name="service_id" value="{{ $service->id }}">
 
@@ -55,6 +55,40 @@
                                       placeholder="Full address where service is needed" required></textarea>
                         </div>
 
+                        {{-- REWARD POINTS SECTION --}}
+                        @auth
+                            @php($points = auth()->user()->reward_points ?? 0)
+                            @if($points >= 100)
+                                <div class="mb-4 p-3 bg-light rounded-4 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <label class="fw-semibold text-dark">
+                                            <i class="fas fa-star text-warning me-1"></i> Reward Points
+                                        </label>
+                                        <span class="badge bg-primary rounded-pill">{{ number_format($points) }} points available</span>
+                                    </div>
+                                    <div class="input-group">
+                                        <input type="number" name="redeem_points" id="redeem_points" class="form-control rounded-start-pill" 
+                                               value="0" min="0" max="{{ $points }}" step="100" placeholder="Points to redeem">
+                                        <span class="input-group-text bg-white rounded-end-pill">points</span>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            10 points = 1 Tk discount. You will save 
+                                            <span id="discount_amount" class="fw-bold text-success">0</span> Tk.
+                                        </small>
+                                    </div>
+                                    <div class="mt-1 text-end">
+                                        <span class="badge bg-light text-dark">Final price: <span id="final_price">{{ number_format($service->price) }}</span> Tk</span>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="alert alert-secondary small rounded-pill mb-4">
+                                    Earn reward points on completed bookings. You need at least 100 points to get a discount. 
+                                    <a href="{{ route('customer.profile') }}" class="alert-link">View your points</a>
+                                </div>
+                            @endif
+                        @endauth
+
                         <button type="submit" class="btn w-100 py-2 rounded-pill fw-bold" 
                                 style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: white;">
                             Confirm Booking
@@ -71,4 +105,27 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const pointsInput = document.getElementById('redeem_points');
+        if (!pointsInput) return;
+
+        const basePrice = {{ $service->price }};
+        const discountSpan = document.getElementById('discount_amount');
+        const finalPriceSpan = document.getElementById('final_price');
+
+        function updateDiscount() {
+            let points = parseInt(pointsInput.value) || 0;
+            let discount = Math.floor(points / 10);
+            if (discount > basePrice) discount = basePrice;
+            let final = basePrice - discount;
+            discountSpan.textContent = discount;
+            finalPriceSpan.textContent = final.toFixed(0);
+        }
+
+        pointsInput.addEventListener('input', updateDiscount);
+        updateDiscount(); // initial
+    });
+</script>
 @endsection

@@ -81,12 +81,14 @@
             padding: 0.4rem 1rem;
             border-radius: 50px;
             font-size: 0.85rem;
-            font-weight: 600;
+            font-weight: 500;
             text-decoration: none;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 0px;
+            justify-content: center;
+            white-space: nowrap; 
         }
 
         .wallet-badge:hover {
@@ -102,7 +104,13 @@
 <body>
 
     <nav class="custom-navbar">
-        <a href="{{ route('dashboard') }}" class="brand-logo">Task<span>Hive</span></a>
+        <!-- Logo with role badge -->
+        <div>
+            <a href="{{ route('dashboard') }}" class="brand-logo">Task<span>Hive</span></a>
+            @auth
+                <span class="role-badge">{{ ucfirst(Auth::user()->role) }}</span>
+            @endauth
+        </div>
         
         <div class="nav-pill-menu">
             <a href="{{ route('dashboard') }}" class="{{ request()->routeIs('dashboard') ? 'active' : '' }}">Home</a>
@@ -125,7 +133,7 @@
             @endauth
         </div>
 
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3" style="justify-self: end;">
             @auth
                 @if(Auth::user()->role === 'admin')
                     @php
@@ -172,7 +180,7 @@
                     </a>
                 @endif
                 
-                <span class="d-none d-md-inline" style="font-size: 0.8rem;">Hello, {{ Auth::user()->name }}</span>
+                <span class="d-none d-md-inline ms-3" style="font-size: 0.8rem;">Hello, {{ Auth::user()->name }}</span>
                 <form action="{{ route('logout') }}" method="POST" class="m-0">
                     @csrf
                     <button type="submit" class="btn-white">Logout</button>

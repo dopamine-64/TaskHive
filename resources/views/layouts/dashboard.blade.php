@@ -122,7 +122,13 @@
 <body>
 
     <nav class="dashboard-navbar">
-        <a href="{{ route('admin.dashboard') }}" class="brand-logo">Task<span>Hive</span></a>
+        <!-- Logo with role badge -->
+        <div>
+            <a href="{{ route('dashboard') }}" class="brand-logo">Task<span>Hive</span></a>
+            @auth
+                <span class="role-badge">{{ ucfirst(Auth::user()->role) }}</span>
+            @endauth
+        </div>
 
         <div class="d-flex align-items-center gap-3">
             <span class="d-none d-md-inline" style="font-size: 0.9rem;">Hello, {{ Auth::user()->name }}</span>

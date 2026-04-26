@@ -26,6 +26,7 @@ class User extends Authenticatable
         'longitude',
         'is_banned',
         'wallet_balance', 
+        'reward_points',
     ];
 
     /**
@@ -87,5 +88,26 @@ class User extends Authenticatable
     public function isProvider()
     {
         return $this->role === 'provider';
+    }
+
+    public function getRewardPoints()
+    {
+        return $this->reward_points;
+    }
+
+    public function addPoints($points)
+    {
+        $this->reward_points += $points;
+        $this->save();
+    }
+
+    public function deductPoints($points)
+    {
+        if ($this->reward_points >= $points) {
+            $this->reward_points -= $points;
+            $this->save();
+            return true;
+        }
+        return false;
     }
 }

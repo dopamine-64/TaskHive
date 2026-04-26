@@ -10,8 +10,7 @@ use App\Notifications\BookingRequestNotification;
 use App\Notifications\BookingAcceptedConfirmation;
 use App\Notifications\BookingCompletedConfirmation;
 use App\Models\Rating;
-
-
+use App\Models\Tracking; // Added for Eloquent model
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -23,38 +22,38 @@ class TrackingController extends Controller
     }
 
     public function initiateTracking(Request $request, $providerId) {
-    // Get service_id from request or use provider's first service
-    $serviceId = $request->service_id;
-    
-    if (!$serviceId) {
-        // If no service_id provided, get provider's first service
-        $service = \App\Models\Service::where('user_id', $providerId)->first();
-        $serviceId = $service ? $service->id : null;
-    }
-    
-    $service = \App\Models\Service::find($serviceId);
-    
-    $trackingId = DB::table('trackings')->insertGetId([
-        'customer_id' => Auth::id(),
-        'provider_id' => $providerId,
-        'service_id' => $serviceId,
-        'booking_date' => $request->booking_date ?? now()->format('Y-m-d'),
-        'booking_time' => $request->booking_time ?? '09:00:00',
-        'address' => $request->address ?? 'To be confirmed',
-        'duration' => $service ? $service->duration : 60,
-        'status' => 'requested',
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+        $serviceId = $request->service_id;
+        
+        if (!$serviceId) {
+            $service = \App\Models\Service::where('user_id', $providerId)->first();
+            $serviceId = $service ? $service->id : null;
+        }
+        
+        $service = \App\Models\Service::find($serviceId);
+        
+        $trackingId = DB::table('trackings')->insertGetId([
+            'customer_id' => Auth::id(),
+            'provider_id' => $providerId,
+            'service_id' => $serviceId,
+            'booking_date' => $request->booking_date ?? now()->format('Y-m-d'),
+            'booking_time' => $request->booking_time ?? '09:00:00',
+            'address' => $request->address ?? 'To be confirmed',
+            'duration' => $service ? $service->duration : 60,
+            'status' => 'requested',
+            'points_earned' => 0,   // default
+            'points_used' => 0,      // default
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-    $tracking = DB::table('trackings')->where('id', $trackingId)->first();
-    $provider = User::find($providerId);
-    if ($provider && $tracking) {
-        $provider->notify(new BookingRequestNotification($tracking));
-    }
+        $tracking = DB::table('trackings')->where('id', $trackingId)->first();
+        $provider = User::find($providerId);
+        if ($provider && $tracking) {
+            $provider->notify(new BookingRequestNotification($tracking));
+        }
 
-    return redirect()->route('tracking.live', $trackingId);
-}
+        return redirect()->route('tracking.live', $trackingId);
+    }
 
     public function liveTracking($id) {
         $tracking = DB::table('trackings')->where('id', $id)->first();
@@ -117,11 +116,9 @@ class TrackingController extends Controller
         return back()->with('success', 'Job Accepted!');
     }
 
-    // This method handles the Provider Profile logic
     public function showProviderProfile($id) {
         $provider = User::findOrFail($id);
         
-        // 1. Fetch NEW requests (Status: requested)
         $incomingRequests = DB::table('trackings')
             ->join('users', 'trackings.customer_id', '=', 'users.id')
             ->where('trackings.provider_id', $id)
@@ -129,7 +126,6 @@ class TrackingController extends Controller
             ->select('trackings.*', 'users.name as customer_name')
             ->get();
 
-        // 2. Fetch ACTIVE jobs (Status: accepted or in_progress)
         $activeJobs = DB::table('trackings')
             ->join('users', 'trackings.customer_id', '=', 'users.id')
             ->where('trackings.provider_id', $id)
@@ -140,7 +136,6 @@ class TrackingController extends Controller
         return view('services.profile-show', compact('provider', 'incomingRequests', 'activeJobs'));
     }
 
-    // Customer Profile - Shows ALL bookings
     public function customerProfile()
     {
         $userId = Auth::id();
@@ -167,6 +162,9 @@ class TrackingController extends Controller
         return view('profile.customer', compact('bookings', 'ratedTrackingIds'));
     }
 
+    /**
+     * Mark a booking as completed and award reward points to the customer.
+     */
     public function complete($id) {
         $provider = Auth::user();
         if (!$provider || $provider->role !== 'provider') {
@@ -190,6 +188,7 @@ class TrackingController extends Controller
             return back()->with('error', 'Only active jobs can be marked as completed.');
         }
 
+        // Update status to completed
         $updated = DB::table('trackings')
             ->where('id', $id)
             ->where('provider_id', $provider->id)
@@ -204,6 +203,34 @@ class TrackingController extends Controller
             return back()->with('error', 'This job could not be completed. Please refresh and try again.');
         }
 
+        // --- REWARD POINTS LOGIC ---
+        // Reload the updated tracking record
+        $completedJob = DB::table('trackings')->where('id', $id)->first();
+        
+        // Only award points if not already awarded (points_earned == 0)
+        if ($completedJob && $completedJob->points_earned == 0) {
+            $amount = $completedJob->amount; // final paid amount (after discount)
+            // Example: 1 point per 10 BDT (higher amount = higher points)
+            $points = max(1, floor($amount / 10));
+            
+            // Update tracking record with points earned
+            DB::table('trackings')->where('id', $id)->update([
+                'points_earned' => $points,
+                'updated_at' => now(),
+            ]);
+            
+            // Add points to customer's wallet
+            $customer = User::find($completedJob->customer_id);
+            if ($customer) {
+                $customer->reward_points = ($customer->reward_points ?? 0) + $points;
+                $customer->save();
+                
+                // Optional: trigger a notification
+                // $customer->notify(new PointsAwardedNotification($points));
+            }
+        }
+
+        // Send notifications
         $customer = User::find($job->customer_id);
         if ($customer) {
             $customer->notify(new BookingCompletedNotification());
@@ -212,7 +239,7 @@ class TrackingController extends Controller
         $updatedTracking = DB::table('trackings')->where('id', $id)->first();
         $provider->notify(new BookingCompletedConfirmation($updatedTracking ?? $job));
 
-        return redirect()->route('provider.show', $provider->id)->with('success', 'Job Completed!');
+        return redirect()->route('provider.show', $provider->id)->with('success', 'Job Completed! You earned points.');
     }
 
     public function decline($id) {
