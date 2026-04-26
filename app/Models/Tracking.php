@@ -23,9 +23,11 @@ class Tracking extends Model
         'status',
         'current_lat',
         'current_lng',
+        'points_earned',
+        'points_used',
+
     ];
 
-    // Optional: If you want to link relationships easily later
     public function service()
     {
         return $this->belongsTo(Service::class);
@@ -39,5 +41,12 @@ class Tracking extends Model
     public function provider()
     {
         return $this->belongsTo(User::class, 'provider_id');
+    }
+
+    public function calculatePoints()
+    {
+        // Example: 1 point per 10 BDT, but minimum 1 point if amount > 0
+        $points = floor($this->amount / 10);
+        return max(1, $points);
     }
 }

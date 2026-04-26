@@ -6,22 +6,44 @@
 <div class="container py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="text-white m-0">
-            <i class="fas fa-wallet text-warning me-2"></i>My Wallet
+            <i class="fas fa-wallet text-warning me-2"></i>My Wallet & Points
         </h2>
         <a href="{{ url('/dashboard') }}" class="btn btn-outline-light btn-sm rounded-pill px-3">
-            ← Back to Dashboard
+            Back to Dashboard
         </a>
     </div>
 
-    <!-- Balance Card -->
-    <div class="card mb-4 border-0" style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 20px;">
-        <div class="card-body p-4 text-center">
-            <p class="text-white-50 mb-1">Current Balance</p>
-            <h2 class="text-warning mb-0 fw-bold">
-                ৳ {{ number_format($currentBalance ?? 0, 2) }}
-            </h2>
-            <p class="text-white-50 mt-2 small">Real money balance in Taka (BDT)</p>
+    <!-- Combined Balance & Points Card -->
+    <div class="card mb-4 border-0 overflow-hidden" style="background: linear-gradient(135deg, #1a1a2e, #16213e); border-radius: 24px;">
+        <div class="card-body p-0">
+            <div class="row g-0">
+                <!-- Wallet Balance Section -->
+                <div class="col-md-6 p-4 text-center border-end border-white-10">
+                    <i class="fas fa-wallet fa-2x text-info mb-2"></i>
+                    <p class="text-white-50 mb-1">Wallet Balance</p>
+                    <h2 class="text-info mb-0 fw-bold">
+                        ৳ {{ number_format($currentBalance ?? 0, 2) }}
+                    </h2>
+                    <p class="text-white-50 mt-2 small">Available for payments</p>
+                </div>
+                <!-- Reward Points Section -->
+                <div class="col-md-6 p-4 text-center">
+                    <i class="fas fa-star fa-2x text-warning mb-2"></i>
+                    <p class="text-white-50 mb-1">Reward Points</p>
+                    <h2 class="text-warning mb-0 fw-bold">
+                        {{ number_format(auth()->user()->reward_points ?? 0) }}
+                    </h2>
+                    <p class="text-white-50 mt-2 small">10 points = 1 Tk discount on next booking</p>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <!-- Optional: Quick links to use points -->
+    <div class="text-center mb-4">
+        <a href="{{ route('services.categories') }}" class="btn btn-sm btn-outline-warning rounded-pill px-4">
+            <i class="fas fa-shopping-cart me-1"></i> Book a Service
+        </a>
     </div>
 
     <!-- Transaction History -->
