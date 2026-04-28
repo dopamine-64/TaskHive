@@ -66,7 +66,7 @@ Route::get('/', [AuthController::class, 'showAuth']);
 
 // ========== OTP ROUTES (MOVE THESE HERE) ==========
 // These need to be public so the redirect doesn't trigger middleware loops
-Route::get('/otp/{type}/{phone}', [AuthController::class, 'showOtpForm'])->name('otp.form');
+Route::get('/otp/{type}/{email}', [AuthController::class, 'showOtpForm'])->name('otp.form');
 Route::post('/otp/verify', [AuthController::class, 'verifyOtp'])->name('otp.verify');
 Route::post('/otp/resend', [AuthController::class, 'resendOtp'])->name('otp.resend');
 
