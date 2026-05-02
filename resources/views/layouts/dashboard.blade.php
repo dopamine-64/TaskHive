@@ -143,7 +143,7 @@
                     <li><a class="dropdown-item" href="{{ route('admin.users') }}"><i class="fas fa-users"></i> Manage Users</a></li>
                     <li><a class="dropdown-item" href="{{ route('admin.providers') }}"><i class="fas fa-user-tie"></i> Manage Providers</a></li>
                     <li><a class="dropdown-item" href="{{ route('admin.bookings') }}"><i class="fas fa-calendar-alt"></i> Manage Bookings</a></li>
-                    <li><a class="dropdown-item" href="{{ route('admin.services') }}"><i class="fas fa-concierge-bell"></i> Manage Services</a></li>
+                    <li><a class="dropdown-item" href="{{ route('admin.services') }}"><i class="fas fa-check-circle"></i> Manage Services</a></li>
                     <li><hr class="dropdown-divider"></li>
                     <li><h6 class="dropdown-header">SYSTEM</h6></li>
                     <li><a class="dropdown-item" href="{{ route('admin.activities') }}"><i class="fas fa-history"></i> System Activities</a></li>
