@@ -12,6 +12,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\WalletController;
+use Illuminate\Support\Facades\Artisan;
 
 // ==================== ADMIN ROUTES ====================
 Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
@@ -140,4 +141,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/complaints', [\App\Http\Controllers\ComplaintController::class, 'store'])->name('complaints.store');
 
     Route::get('/my-account', [TrackingController::class, 'customerProfile']);
+});
+
+// TEMP ROUTE TO RUN SEEDER
+Route::get('/run-admin-seeder', function () {
+    Artisan::call('db:seed', ['--class' => 'AdminUserSeeder']);
+    return 'Admin account created successfully! You can now delete this route.';
 });
