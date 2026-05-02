@@ -7,17 +7,8 @@
             <div class="card shadow-lg border-0" style="border-radius: 20px;">
                 <div class="card-body p-5 text-center">
                     
-                    {{-- 🔐 DEMO OTP DISPLAY --}}
-                    @if(session('debug_otp'))
-                        <div class="alert alert-info alert-dismissible fade show mb-3" role="alert" style="background: #e6f7ff; border: 1px solid #91d5ff; border-radius: 12px;">
-                            <i class="fas fa-key me-2"></i>
-                            <strong>Demo OTP Code:</strong> {{ session('debug_otp') }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-                    @endif
-                    
-                    <i class="fas fa-sms fa-4x text-primary mb-3"></i>
-                    <h3 class="fw-bold mb-2">Phone Verification</h3>
+                    <i class="fas fa-envelope fa-4x text-primary mb-3"></i>
+                    <h3 class="fw-bold mb-2">Email Verification</h3>
                     
                     {{-- Error Display --}}
                     @if(session('error'))
@@ -37,14 +28,14 @@
                     @endif
                     
                     <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold">Verifying number:</label>
-                        <p class="fw-bold fs-5">{{ $phone }}</p>
+                        <label class="form-label text-muted small fw-bold">Verifying email:</label>
+                        <p class="fw-bold fs-5">{{ $email }}</p>
                     </div>
 
                     {{-- Main Verification Form --}}
                     <form method="POST" action="{{ route('otp.verify') }}">
                         @csrf
-                        <input type="hidden" name="phone" value="{{ $phone }}">
+                        <input type="hidden" name="email" value="{{ $email }}">
                         <input type="hidden" name="type" value="{{ $type ?? 'register' }}">
                         
                         <div class="mb-3">
@@ -54,18 +45,18 @@
                         </div>
                         
                         <button type="submit" class="btn btn-success w-100 py-2 fw-bold" style="border-radius: 12px;">
-                            Verify OTP
+                            Verify & Continue
                         </button>
                     </form>
                     
                     {{-- Resend Form --}}
                     <form method="POST" action="{{ route('otp.resend') }}" class="mt-3">
                         @csrf
-                        <input type="hidden" name="phone" value="{{ $phone }}">
+                        <input type="hidden" name="email" value="{{ $email }}">
                         <input type="hidden" name="type" value="{{ $type ?? 'register' }}">
                         
                         <button type="submit" class="btn btn-link text-decoration-none small text-muted">
-                            Didn't receive a code? <strong>Resend OTP</strong>
+                            Didn't receive code? <strong>Resend OTP</strong>
                         </button>
                     </form>
                 </div>
