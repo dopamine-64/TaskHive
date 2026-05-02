@@ -27,13 +27,13 @@
                         @method('PUT')
 
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">📅 New Date</label>
+                            <label class="form-label fw-semibold"> New Date</label>
                             <input type="date" name="booking_date" class="form-control rounded-pill" 
                                    value="{{ $booking->booking_date }}" min="{{ date('Y-m-d') }}" required>
                         </div>
 
                         <div class="mb-4">
-                            <label class="form-label fw-semibold">⏰ New Time</label>
+                            <label class="form-label fw-semibold"> New Time</label>
                             <select name="booking_time" class="form-select rounded-pill" required>
                                 <option value="09:00" {{ $booking->booking_time == '09:00' ? 'selected' : '' }}>09:00 AM</option>
                                 <option value="10:00" {{ $booking->booking_time == '10:00' ? 'selected' : '' }}>10:00 AM</option>

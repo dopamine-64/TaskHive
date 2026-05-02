@@ -45,7 +45,7 @@
 
         <div class="d-flex justify-content-end">
             <a href="{{ route('customer.profile') }}" class="btn btn-secondary me-2">Cancel</a>
-            <a href="{{ route('customer.profile') }}" class="btn btn-primary">Submit Complaint</a>
+            <button type="submit" class="btn btn-primary">Submit Complaint</button>
         </div>
     </form>
 </div>

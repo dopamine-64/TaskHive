@@ -34,18 +34,19 @@ class AdminController extends Controller
         $totalUsers = User::where('role', 'user')->count();
         $totalProviders = User::where('role', 'provider')->count();
         $totalBookings = Tracking::count();
-        
-        $revenue = Tracking::where('payment_status', 'paid')->sum('amount');
-        
+
+        // --- Revenue from successful transactions (all time) ---
+        $revenue = Transaction::where('status', 'success')->sum('amount');
+
         $pendingRequests = Tracking::where('status', 'requested')->count();
         $totalServices = Service::count();
 
-        // Monthly revenue (paid bookings)
+        // --- Monthly revenue from successful transactions (current year) ---
         $monthlyRevenue = [];
         for ($i = 1; $i <= 12; $i++) {
-            $monthlyRevenue[] = Tracking::whereYear('created_at', date('Y'))
+            $monthlyRevenue[] = Transaction::whereYear('created_at', date('Y'))
                 ->whereMonth('created_at', $i)
-                ->where('payment_status', 'paid')
+                ->where('status', 'success')
                 ->sum('amount');
         }
 
@@ -248,6 +249,7 @@ class AdminController extends Controller
             DB::raw('SUM(amount) as total'),
             DB::raw("DATE_FORMAT(created_at, '%M %Y') as month")
         )
+        ->where('status', 'success')
         ->where('created_at', '>=', Carbon::now()->subMonths(6))
         ->groupBy('month')
         ->orderByRaw('MIN(created_at)') // Orders chronologically

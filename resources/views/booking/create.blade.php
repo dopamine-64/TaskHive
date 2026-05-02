@@ -16,7 +16,7 @@
                         </div>
                     @endif
                     
-                    <h3 class="text-center mb-4 fw-bold" style="color: #1a1a2e;">📅 Book Service</h3>
+                    <h3 class="text-center mb-4 fw-bold" style="color: #1a1a2e;">Book Service</h3>
                     
                     <div class="mb-4 pb-2 border-bottom">
                         <h5 class="fw-bold mb-1">{{ $service->title }}</h5>
