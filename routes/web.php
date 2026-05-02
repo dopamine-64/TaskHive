@@ -143,8 +143,14 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-account', [TrackingController::class, 'customerProfile']);
 });
 
-// TEMP ROUTE TO RUN SEEDER
+// 1. TEMP ROUTE TO RUN MIGRATIONS
+Route::get('/run-migrations', function () {
+    Artisan::call('migrate', ['--force' => true]);
+    return 'Migrations ran successfully! Database tables created.';
+});
+
+// 2. TEMP ROUTE TO RUN SEEDER
 Route::get('/run-admin-seeder', function () {
-    Artisan::call('db:seed', ['--class' => 'AdminUserSeeder']);
+    Artisan::call('db:seed', ['--class' => 'AdminUserSeeder', '--force' => true]);
     return 'Admin account created successfully! You can now delete this route.';
 });

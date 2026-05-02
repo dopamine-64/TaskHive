@@ -16,6 +16,12 @@ class PaymentController extends Controller
     {
         $booking = Tracking::findOrFail($booking_id);
 
+        // --- NEW SAFETY CHECK ---
+        // If Laravel config is cached, env() returns null. This proves if that's happening!
+        if (empty(env('SSLCZ_STORE_ID')) || empty(env('SSLCZ_STORE_PASSWORD'))) {
+            return back()->with('error', 'CRITICAL ERROR: Store ID or Password is blank. Laravel is not reading your Render variables!');
+        }
+
         // 1. Create pending transaction in our database
         $transaction_id = uniqid('TXN_') . time(); 
         
@@ -68,10 +74,16 @@ class PaymentController extends Controller
         curl_setopt($handle, CURLOPT_POST, 1);
         curl_setopt($handle, CURLOPT_POSTFIELDS, $post_data);
         curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, FALSE); // Prevents local SSL errors
+        curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, FALSE); 
         
         $content = curl_exec($handle);
+        $curl_error = curl_error($handle); // Catch physical connection errors
         curl_close($handle);
+
+        // --- NEW ERROR HANDLING ---
+        if ($content === false) {
+            return back()->with('error', 'cURL Connection Failed: ' . $curl_error);
+        }
 
         $sslcommerzResponse = json_decode($content, true);
 
@@ -79,7 +91,9 @@ class PaymentController extends Controller
         if (isset($sslcommerzResponse['status']) && $sslcommerzResponse['status'] == 'SUCCESS') {
             return redirect()->away($sslcommerzResponse['GatewayPageURL']);
         } else {
-            return back()->with('error', 'SSLCommerz Gateway Error: Could not connect.');
+            // Print the EXACT reason SSLCommerz rejected it
+            $errorMessage = $sslcommerzResponse['failedreason'] ?? 'Unknown API Error. Raw: ' . $content;
+            return back()->with('error', 'SSLCommerz Rejected: ' . $errorMessage);
         }
     }
 
