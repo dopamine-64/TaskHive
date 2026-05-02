@@ -78,7 +78,7 @@
             <div class="card border-0 shadow-sm rounded-4 h-100 bg-white">
                 <div class="card-body p-4 d-flex align-items-center">
                     <div class="bg-success bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 60px; height: 60px;">
-                        <i class="fas fa-concierge-bell fa-2x text-success"></i>
+                        <i class="fas fa-check-circle fa-2x text-success"></i>
                     </div>
                     <div>
                         <p class="text-muted text-uppercase fw-bold small mb-1">Total Services</p>
@@ -87,7 +87,6 @@
                 </div>
             </div>
         </div>
-    </div>
 
     {{-- Complaints Summary --}}
     <div class="row g-4 mb-4">

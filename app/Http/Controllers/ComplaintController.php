@@ -46,6 +46,6 @@ class ComplaintController extends Controller
             'admin_id' => null,
         ]);
 
-        return redirect()->route('dashboard')->with('success', 'Complaint submitted. Administrators will review it.');
+        return redirect()->route('customer.profile')->with('success', 'Complaint submitted. Administrators will review it.');
     }
 }
