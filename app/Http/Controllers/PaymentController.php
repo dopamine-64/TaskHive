@@ -17,8 +17,8 @@ class PaymentController extends Controller
         $booking = Tracking::findOrFail($booking_id);
 
         // --- NEW SAFETY CHECK ---
-        // If Laravel config is cached, env() returns null. This proves if that's happening!
-        if (empty(env('SSLCZ_STORE_ID')) || empty(env('SSLCZ_STORE_PASSWORD'))) {
+        // If Laravel config is cached, getenv() returns null. This proves if that's happening!
+        if (empty(getenv('SSLCZ_STORE_ID')) || empty(getenv('SSLCZ_STORE_PASSWORD'))) {
             return back()->with('error', 'CRITICAL ERROR: Store ID or Password is blank. Laravel is not reading your Render variables!');
         }
 
@@ -35,8 +35,8 @@ class PaymentController extends Controller
 
         // 2. Prepare SSLCommerz API Data
         $post_data = array();
-        $post_data['store_id'] = env('SSLCZ_STORE_ID');
-        $post_data['store_passwd'] = env('SSLCZ_STORE_PASSWORD');
+        $post_data['store_id'] = getenv('SSLCZ_STORE_ID');
+        $post_data['store_passwd'] = getenv('SSLCZ_STORE_PASSWORD');
         $post_data['total_amount'] = $transaction->amount;
         $post_data['currency'] = "BDT";
         $post_data['tran_id'] = $transaction->transaction_id;
@@ -62,7 +62,7 @@ class PaymentController extends Controller
         $post_data['product_profile'] = "general";
 
         // 3. Connect to SSLCommerz API
-        $is_sandbox = env('SSLCZ_IS_SANDBOX', true);
+        $is_sandbox = (getenv('SSLCZ_IS_SANDBOX') === 'true');
         $url = $is_sandbox 
             ? 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php' 
             : 'https://securepay.sslcommerz.com/gwprocess/v4/api.php';
