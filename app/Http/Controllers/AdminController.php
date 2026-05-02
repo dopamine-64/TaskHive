@@ -34,21 +34,20 @@ class AdminController extends Controller
         $totalUsers = User::where('role', 'user')->count();
         $totalProviders = User::where('role', 'provider')->count();
         $totalBookings = Tracking::count();
-
-        // --- Revenue from successful transactions (all time) ---
-        $revenue = Transaction::where('status', 'success')->sum('amount');
-
+        
+        $revenue = Tracking::where('payment_status', 'paid')->sum('amount');
+        
         $pendingRequests = Tracking::where('status', 'requested')->count();
         $totalServices = Service::count();
 
-        // --- Monthly revenue from successful transactions (current year) ---
+        // Monthly revenue (paid bookings)
         $monthlyRevenue = [];
         for ($i = 1; $i <= 12; $i++) {
-            $monthlyRevenue[] = Transaction::whereYear('created_at', date('Y'))
+            $monthlyRevenue[] = Tracking::whereYear('created_at', date('Y'))
                 ->whereMonth('created_at', $i)
-                ->where('status', 'success')
+                ->where('payment_status', 'paid')
                 ->sum('amount');
-        }
+            }
 
         // Booking status counts
         $statusLabels = ['Requested', 'Accepted', 'Completed', 'Cancelled', 'Declined', 'In Progress'];
@@ -230,7 +229,7 @@ class AdminController extends Controller
         $complaint->save();
 
         $this->logActivity('Updated complaint', 'complaint', $id, "Status set to {$complaint->status}");
-        return back()->with('success', 'Complaint updated.');
+        return redirect()->route('admin.dashboard')->with('success', 'Complaint updated.');
     }
 
     public function deleteComplaint($id)
@@ -244,15 +243,15 @@ class AdminController extends Controller
     // ---------- REPORTS & ANALYTICS ----------
     public function reports()
     {
-        // 1. Revenue Trends (Grouped by month for the last 6 months)
-        $revenueData = Transaction::select(
+        // 1. Revenue Trends from Trackings (paid bookings, last 6 months)
+        $revenueData = Tracking::select(
             DB::raw('SUM(amount) as total'),
             DB::raw("DATE_FORMAT(created_at, '%M %Y') as month")
         )
-        ->where('status', 'success')
+        ->where('payment_status', 'paid')
         ->where('created_at', '>=', Carbon::now()->subMonths(6))
         ->groupBy('month')
-        ->orderByRaw('MIN(created_at)') // Orders chronologically
+        ->orderByRaw('MIN(created_at)')
         ->get();
 
         $revenueLabels = $revenueData->pluck('month');
