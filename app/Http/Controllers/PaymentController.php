@@ -16,10 +16,13 @@ class PaymentController extends Controller
     {
         $booking = Tracking::findOrFail($booking_id);
 
+        // Fetch values from the config we just created
+        $store_id = config('services.sslcommerz.store_id');
+        $store_password = config('services.sslcommerz.store_password');
+
         // --- NEW SAFETY CHECK ---
-        // If Laravel config is cached, getenv() returns null. This proves if that's happening!
-        if (empty(getenv('SSLCZ_STORE_ID')) || empty(getenv('SSLCZ_STORE_PASSWORD'))) {
-            return back()->with('error', 'CRITICAL ERROR: Store ID or Password is blank. Laravel is not reading your Render variables!');
+        if (empty($store_id) || empty($store_password)) {
+            return back()->with('error', 'CRITICAL ERROR: Variables are STILL blank. Please check your Render Environment tab!');
         }
 
         // 1. Create pending transaction in our database
@@ -35,8 +38,8 @@ class PaymentController extends Controller
 
         // 2. Prepare SSLCommerz API Data
         $post_data = array();
-        $post_data['store_id'] = getenv('SSLCZ_STORE_ID');
-        $post_data['store_passwd'] = getenv('SSLCZ_STORE_PASSWORD');
+        $post_data['store_id'] = $store_id;         
+        $post_data['store_passwd'] = $store_password;  
         $post_data['total_amount'] = $transaction->amount;
         $post_data['currency'] = "BDT";
         $post_data['tran_id'] = $transaction->transaction_id;
@@ -62,7 +65,10 @@ class PaymentController extends Controller
         $post_data['product_profile'] = "general";
 
         // 3. Connect to SSLCommerz API
-        $is_sandbox = (getenv('SSLCZ_IS_SANDBOX') === 'true');
+        // 👈 Use the config variable and cast it
+        $is_sandbox = config('services.sslcommerz.is_sandbox'); 
+        $is_sandbox = ($is_sandbox === true || $is_sandbox === 'true');
+        
         $url = $is_sandbox 
             ? 'https://sandbox.sslcommerz.com/gwprocess/v4/api.php' 
             : 'https://securepay.sslcommerz.com/gwprocess/v4/api.php';
@@ -77,10 +83,9 @@ class PaymentController extends Controller
         curl_setopt($handle, CURLOPT_SSL_VERIFYPEER, FALSE); 
         
         $content = curl_exec($handle);
-        $curl_error = curl_error($handle); // Catch physical connection errors
+        $curl_error = curl_error($handle); 
         curl_close($handle);
 
-        // --- NEW ERROR HANDLING ---
         if ($content === false) {
             return back()->with('error', 'cURL Connection Failed: ' . $curl_error);
         }
@@ -91,7 +96,6 @@ class PaymentController extends Controller
         if (isset($sslcommerzResponse['status']) && $sslcommerzResponse['status'] == 'SUCCESS') {
             return redirect()->away($sslcommerzResponse['GatewayPageURL']);
         } else {
-            // Print the EXACT reason SSLCommerz rejected it
             $errorMessage = $sslcommerzResponse['failedreason'] ?? 'Unknown API Error. Raw: ' . $content;
             return back()->with('error', 'SSLCommerz Rejected: ' . $errorMessage);
         }
