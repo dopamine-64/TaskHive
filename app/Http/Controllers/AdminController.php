@@ -243,10 +243,17 @@ class AdminController extends Controller
     // ---------- REPORTS & ANALYTICS ----------
     public function reports()
     {
+        // --- NEW CODE: Detect database type ---
+        $isPostgres = DB::connection()->getDriverName() === 'pgsql';
+
+        $dateFormatting = $isPostgres 
+            ? "TO_CHAR(created_at, 'FMMonth YYYY')"  // Render (PostgreSQL)
+            : "DATE_FORMAT(created_at, '%M %Y')";
+
         // 1. Revenue Trends from Trackings (paid bookings, last 6 months)
         $revenueData = Tracking::select(
             DB::raw('SUM(amount) as total'),
-            DB::raw("DATE_FORMAT(created_at, '%M %Y') as month")
+            DB::raw("{$dateFormatting} as month") // <-- Updated this line
         )
         ->where('payment_status', 'paid')
         ->where('created_at', '>=', Carbon::now()->subMonths(6))
